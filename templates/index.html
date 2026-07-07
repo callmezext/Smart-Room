@@ -705,6 +705,34 @@
                   <option value="whisper">Whisper (Lokal, Bahasa Indonesia)</option>
                 </select>
               </div>
+              
+              <!-- Smart Volume Config -->
+              <div class="col-span-full border-t border-zinc-800/80 pt-3 mt-1 flex flex-col gap-3">
+                <div class="flex justify-between items-center">
+                  <div class="flex flex-col leading-tight">
+                    <span class="text-xs font-bold text-zinc-300">Volume Malam Pintar</span>
+                    <span class="text-[9px] text-zinc-500">Kecilkan volume otomatis pada jam tidur.</span>
+                  </div>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" id="smartVolumeToggle" class="sr-only peer">
+                    <div class="w-8 h-4 bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-zinc-300 after:border-zinc-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-brand-500 peer-checked:after:bg-white"></div>
+                  </label>
+                </div>
+                <div class="grid grid-cols-3 gap-2">
+                  <div class="flex flex-col gap-1">
+                    <label class="text-[9px] font-semibold text-zinc-500">Mulai Jam (0-23)</label>
+                    <input type="number" id="smartVolStart" min="0" max="23" class="bg-zinc-950 border border-zinc-800 text-zinc-300 rounded-lg text-xs p-2 outline-none" placeholder="22">
+                  </div>
+                  <div class="flex flex-col gap-1">
+                    <label class="text-[9px] font-semibold text-zinc-500">Selesai Jam (0-23)</label>
+                    <input type="number" id="smartVolEnd" min="0" max="23" class="bg-zinc-950 border border-zinc-800 text-zinc-300 rounded-lg text-xs p-2 outline-none" placeholder="6">
+                  </div>
+                  <div class="flex flex-col gap-1">
+                    <label class="text-[9px] font-semibold text-zinc-500">Volume (%)</label>
+                    <input type="number" id="smartVolLevel" min="1" max="100" class="bg-zinc-950 border border-zinc-800 text-zinc-300 rounded-lg text-xs p-2 outline-none" placeholder="25">
+                  </div>
+                </div>
+              </div>
             </div>
             
             <!-- Save Button -->
@@ -1225,6 +1253,9 @@
           Matikan (Dismiss)
         </button>
       </div>
+      <p onclick="requestShakePermission()" class="text-[9px] text-zinc-500 mt-1 cursor-pointer hover:text-zinc-400 select-none">
+        <i class="fa-solid fa-mobile-screen-button mr-1 animate-bounce"></i> Goyangkan HP untuk Tunda (Snooze)
+      </p>
     </div>
   </div>
 
@@ -1322,6 +1353,9 @@
 
       // CCTV Auto Refresh initialization
       initCctvAutoRefresh();
+
+      // Shake detection for mobile alarm snooze
+      initShakeDetection();
 
       // WhatsApp Contact Widget initialization
       initWhatsAppWidget();
@@ -2301,6 +2335,70 @@
       }
     }
 
+    // Acceleration shake detection variables
+    let lastX = null, lastY = null, lastZ = null;
+    let lastTime = 0;
+    let shakeCooldown = false;
+    let isShakeListenerAdded = false;
+
+    function initShakeDetection() {
+      if (window.DeviceMotionEvent) {
+        if (typeof DeviceMotionEvent.requestPermission !== 'function') {
+          window.addEventListener('devicemotion', handleDeviceMotion, false);
+          isShakeListenerAdded = true;
+        }
+      }
+    }
+
+    function requestShakePermission() {
+      if (window.DeviceMotionEvent && typeof DeviceMotionEvent.requestPermission === 'function') {
+        DeviceMotionEvent.requestPermission()
+          .then(permissionState => {
+            if (permissionState === 'granted') {
+              window.addEventListener('devicemotion', handleDeviceMotion, false);
+              isShakeListenerAdded = true;
+              customAlert("Sensor Aktif", "Sensor gerak HP berhasil diaktifkan!", "success");
+            }
+          })
+          .catch(console.error);
+      } else {
+        customAlert("Sensor Aktif", "Goyangan HP aktif (Android default)", "info");
+      }
+    }
+
+    function handleDeviceMotion(event) {
+      if (!currentRingingAlarmId || shakeCooldown) return;
+
+      const acceleration = event.accelerationIncludingGravity;
+      if (!acceleration) return;
+
+      const curTime = Date.now();
+      if ((curTime - lastTime) > 100) {
+        const diffTime = curTime - lastTime;
+        lastTime = curTime;
+
+        const x = acceleration.x;
+        const y = acceleration.y;
+        const z = acceleration.z;
+
+        if (lastX !== null && lastY !== null && lastZ !== null) {
+          const speed = Math.abs(x + y + z - lastX - lastY - lastZ) / diffTime * 10000;
+          if (speed > 1200) { // Robust shake threshold
+            shakeCooldown = true;
+            snoozeRingingAlarm();
+            customAlert("Alarm Ditunda", "Goyangan HP dideteksi! Alarm ditunda 5 menit.", "success");
+            setTimeout(() => {
+              shakeCooldown = false;
+            }, 5000); // 5s cooldown
+          }
+        }
+
+        lastX = x;
+        lastY = y;
+        lastZ = z;
+      }
+    }
+
     // --- MUSIC PLAYER CONTROLS ---
 
     async function loadMusicList() {
@@ -3055,6 +3153,12 @@
         document.getElementById("cctvFpsNightStartInput").value = data.cctv_fps_night_start_hour ?? 0;
         document.getElementById("cctvFpsNightEndInput").value = data.cctv_fps_night_end_hour ?? 4;
         
+        // Smart Volume settings
+        document.getElementById("smartVolumeToggle").checked = data.smart_volume_enabled === true;
+        document.getElementById("smartVolStart").value = data.smart_volume_start_hour ?? 22;
+        document.getElementById("smartVolEnd").value = data.smart_volume_end_hour ?? 6;
+        document.getElementById("smartVolLevel").value = data.smart_volume_level ?? 25;
+        
         toggleSensingFields();
         
         await fetchVolumeBadge();
@@ -3306,6 +3410,11 @@
       const fpsNightStart = parseInt(document.getElementById("cctvFpsNightStartInput")?.value) || 0;
       const fpsNightEnd = parseInt(document.getElementById("cctvFpsNightEndInput")?.value) || 4;
 
+      const smartVolEnabled = document.getElementById("smartVolumeToggle")?.checked || false;
+      const smartVolStart = parseInt(document.getElementById("smartVolStart")?.value ?? 22);
+      const smartVolEnd = parseInt(document.getElementById("smartVolEnd")?.value ?? 6);
+      const smartVolLevel = parseInt(document.getElementById("smartVolLevel")?.value ?? 25);
+
       const payload = {
         api_keys: keys,
         default_volume: defaultVol,
@@ -3334,10 +3443,12 @@
         cctv_fps_night_start_hour: fpsNightStart,
         cctv_fps_night_end_hour: fpsNightEnd,
         tts_engine: ttsEngine,
-        stt_engine: sttEngine
+        stt_engine: sttEngine,
+        smart_volume_enabled: smartVolEnabled,
+        smart_volume_start_hour: smartVolStart,
+        smart_volume_end_hour: smartVolEnd,
+        smart_volume_level: smartVolLevel
       };
-
-
 
 
 

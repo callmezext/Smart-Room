@@ -179,6 +179,10 @@ DEFAULT_SETTINGS = {
     "cctv_fps_night_end_hour": 4,
     "tts_engine": "edge-tts",
     "stt_engine": "browser",
+    "smart_volume_enabled": True,
+    "smart_volume_start_hour": 22,
+    "smart_volume_end_hour": 6,
+    "smart_volume_level": 25,
 }
 
 
@@ -348,6 +352,27 @@ def get_system_volume() -> int:
         pass
     return 50
 
+def get_adaptive_volume(base_volume: int) -> int:
+    settings = read_json_file(SETTINGS_FILE, DEFAULT_SETTINGS)
+    if not settings.get("smart_volume_enabled", True):
+        return base_volume
+    
+    now = time.localtime()
+    start = int(settings.get("smart_volume_start_hour", 22))
+    end = int(settings.get("smart_volume_end_hour", 6))
+    level = int(settings.get("smart_volume_level", 25))
+    
+    is_quiet_hours = False
+    current_hour = now.tm_hour
+    if start < end:
+        is_quiet_hours = (start <= current_hour < end)
+    else: # Crosses midnight (e.g. 22 to 6)
+        is_quiet_hours = (current_hour >= start or current_hour < end)
+        
+    if is_quiet_hours:
+        return min(base_volume, level)
+    return base_volume
+
 # --- SMART RESTORATION VOLUME LOGIC ---
 
 def get_configured_default_volume() -> int:
@@ -474,6 +499,10 @@ def play_audio_file(file_path: str, volume: Optional[int] = None, is_alarm: bool
     if volume is None:
         settings = read_json_file(SETTINGS_FILE, DEFAULT_SETTINGS)
         volume = settings.get("volume", get_configured_default_volume())
+        
+    # Apply adaptive volume only if it's NOT an alarm
+    if not is_alarm:
+        volume = get_adaptive_volume(volume)
         
     # Set volume to target (e.g. current volume or alarm volume)
     set_system_volume(volume)
@@ -1625,6 +1654,7 @@ async def speak(text: str):
         vol = settings.get("volume")
         if vol is None:
             vol = get_configured_default_volume()
+        vol = get_adaptive_volume(vol)
         set_system_volume(vol)
         
         bt_sink = get_active_bt_sink()
@@ -3097,6 +3127,15 @@ async def post_settings(request: Request):
         settings["tts_engine"] = data["tts_engine"].strip()
     if "stt_engine" in data:
         settings["stt_engine"] = data["stt_engine"].strip()
+        
+    if "smart_volume_enabled" in data:
+        settings["smart_volume_enabled"] = bool(data["smart_volume_enabled"])
+    if "smart_volume_start_hour" in data:
+        settings["smart_volume_start_hour"] = min(23, max(0, int(data["smart_volume_start_hour"])))
+    if "smart_volume_end_hour" in data:
+        settings["smart_volume_end_hour"] = min(23, max(0, int(data["smart_volume_end_hour"])))
+    if "smart_volume_level" in data:
+        settings["smart_volume_level"] = min(100, max(0, int(data["smart_volume_level"])))
 
     write_json_file(SETTINGS_FILE, settings)
     return {"status": "success", "settings": settings}
