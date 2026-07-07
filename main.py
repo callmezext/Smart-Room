@@ -531,12 +531,13 @@ VOICE_MAPPING = {
 }
 
 async def generate_tts_file_async(text: str, lang: str, output_path: str):
+    gtts_lang = "id" if lang not in ["id", "en", "ja", "ko", "jw"] else lang
     if lang == "jw" or lang not in VOICE_MAPPING:
         loop = asyncio.get_running_loop()
         def _save_gtts():
             try:
                 from gtts import gTTS
-                tts = gTTS(text=text, lang=lang)
+                tts = gTTS(text=text, lang=gtts_lang)
                 tts.save(output_path)
             except Exception as e:
                 print(f"gTTS generation failed: {e}")
@@ -553,8 +554,7 @@ async def generate_tts_file_async(text: str, lang: str, output_path: str):
             def _save_fallback():
                 try:
                     from gtts import gTTS
-                    fallback_lang = "id" if lang not in ["id", "en", "ja", "ko"] else lang
-                    tts = gTTS(text=text, lang=fallback_lang)
+                    tts = gTTS(text=text, lang=gtts_lang)
                     tts.save(output_path)
                 except Exception as ex:
                     print(f"Fallback gTTS failed: {ex}")
@@ -3646,15 +3646,30 @@ async def api_vn_delete(filename: str):
     return {"status": "success"}
 
 # --- WIFI HELPER FUNCTIONS ---
-def get_wifi_status() -> dict:
+async def get_wifi_status() -> dict:
     try:
-        # Run nmcli to check connection status
-        res = subprocess.run(["nmcli", "-t", "-f", "DEVICE,TYPE,STATE,CONNECTION", "device"], capture_output=True, text=True, timeout=5.0)
+        proc = await asyncio.create_subprocess_exec(
+            "nmcli", "-t", "-f", "DEVICE,TYPE,STATE,CONNECTION", "device",
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE
+        )
+        try:
+            stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=5.0)
+            returncode = proc.returncode
+            stdout_str = stdout.decode("utf-8", errors="ignore")
+        except asyncio.TimeoutError:
+            try:
+                proc.kill()
+            except Exception:
+                pass
+            returncode = -1
+            stdout_str = ""
+            
         connected_ssid = None
         state = "disconnected"
         interface = "wlo1"
-        if res.returncode == 0:
-            for line in res.stdout.splitlines():
+        if returncode == 0:
+            for line in stdout_str.splitlines():
                 if line.startswith("Warning"):
                     continue
                 parts = line.split(":")
@@ -3665,13 +3680,28 @@ def get_wifi_status() -> dict:
                         connected_ssid = parts[3]
                         
         if (state in ["connected", "terhubung"]) and connected_ssid:
-            # Get details of the active connection (signal, bssid, security)
-            details_res = subprocess.run(["nmcli", "-t", "-f", "active,ssid,signal,bssid,security", "device", "wifi"], capture_output=True, text=True, timeout=5.0)
+            proc_details = await asyncio.create_subprocess_exec(
+                "nmcli", "-t", "-f", "active,ssid,signal,bssid,security", "device", "wifi",
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE
+            )
+            try:
+                stdout_details, stderr_details = await asyncio.wait_for(proc_details.communicate(), timeout=5.0)
+                returncode_details = proc_details.returncode
+                stdout_details_str = stdout_details.decode("utf-8", errors="ignore")
+            except asyncio.TimeoutError:
+                try:
+                    proc_details.kill()
+                except Exception:
+                    pass
+                returncode_details = -1
+                stdout_details_str = ""
+                
             signal = "--"
             bssid = "--"
             security = "--"
-            if details_res.returncode == 0:
-                for line in details_res.stdout.splitlines():
+            if returncode_details == 0:
+                for line in stdout_details_str.splitlines():
                     if line.startswith("Warning"):
                         continue
                     if line.startswith("yes:") or line.startswith("ya:"):
@@ -3682,11 +3712,26 @@ def get_wifi_status() -> dict:
                             security = parts[4]
                             break
             
-            # Get IP address
             ip = "--"
-            ip_res = subprocess.run(["hostname", "-I"], capture_output=True, text=True, timeout=3.0)
-            if ip_res.returncode == 0 and ip_res.stdout.strip():
-                ip = ip_res.stdout.split()[0]
+            proc_ip = await asyncio.create_subprocess_exec(
+                "hostname", "-I",
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE
+            )
+            try:
+                stdout_ip, stderr_ip = await asyncio.wait_for(proc_ip.communicate(), timeout=3.0)
+                returncode_ip = proc_ip.returncode
+                stdout_ip_str = stdout_ip.decode("utf-8", errors="ignore")
+            except asyncio.TimeoutError:
+                try:
+                    proc_ip.kill()
+                except Exception:
+                    pass
+                returncode_ip = -1
+                stdout_ip_str = ""
+                
+            if returncode_ip == 0 and stdout_ip_str.strip():
+                ip = stdout_ip_str.split()[0]
                 
             return {
                 "connected": True,
@@ -3710,19 +3755,35 @@ def get_wifi_status() -> dict:
         "ip": "--"
     }
 
-def scan_wifi_networks() -> list:
+async def scan_wifi_networks() -> list:
     networks = []
     try:
-        res = subprocess.run(["nmcli", "-t", "-f", "active,ssid,signal,bssid,security", "device", "wifi"], capture_output=True, text=True, timeout=8.0)
-        if res.returncode == 0:
+        proc = await asyncio.create_subprocess_exec(
+            "nmcli", "-t", "-f", "active,ssid,signal,bssid,security", "device", "wifi",
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE
+        )
+        try:
+            stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=8.0)
+            returncode = proc.returncode
+            stdout_str = stdout.decode("utf-8", errors="ignore")
+        except asyncio.TimeoutError:
+            try:
+                proc.kill()
+            except Exception:
+                pass
+            returncode = -1
+            stdout_str = ""
+            
+        if returncode == 0:
             seen_ssids = set()
-            for line in res.stdout.splitlines():
+            for line in stdout_str.splitlines():
                 if line.startswith("Warning") or not line.strip():
                     continue
                 parts = line.split(":")
                 if len(parts) >= 5:
                     ssid = parts[1]
-                    if not ssid:  # skip hidden
+                    if not ssid:
                         continue
                     active = parts[0] in ["yes", "ya"]
                     signal = parts[2]
@@ -3745,11 +3806,11 @@ def scan_wifi_networks() -> list:
 # --- WIFI ENDPOINTS ---
 @app.get("/api/wifi/status")
 async def api_wifi_status():
-    return get_wifi_status()
+    return await get_wifi_status()
 
 @app.post("/api/wifi/scan")
 async def api_wifi_scan():
-    return scan_wifi_networks()
+    return await scan_wifi_networks()
 
 @app.post("/api/wifi/connect")
 async def api_wifi_connect(request: Request):
@@ -3764,11 +3825,29 @@ async def api_wifi_connect(request: Request):
         cmd += ["password", password]
         
     try:
-        res = subprocess.run(cmd, capture_output=True, text=True, timeout=15.0)
-        if res.returncode == 0:
+        proc = await asyncio.create_subprocess_exec(
+            *cmd,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE
+        )
+        try:
+            stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=15.0)
+            returncode = proc.returncode
+            stdout_str = stdout.decode("utf-8", errors="ignore")
+            stderr_str = stderr.decode("utf-8", errors="ignore")
+        except asyncio.TimeoutError:
+            try:
+                proc.kill()
+            except Exception:
+                pass
+            returncode = -1
+            stdout_str = ""
+            stderr_str = "Timeout connecting to WiFi"
+            
+        if returncode == 0:
             return {"status": "success", "message": f"Tersambung ke WiFi {ssid}"}
         else:
-            return {"status": "error", "message": res.stderr.strip() or res.stdout.strip()}
+            return {"status": "error", "message": stderr_str.strip() or stdout_str.strip()}
     except Exception as e:
         return {"status": "error", "message": str(e)}
 
