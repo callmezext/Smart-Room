@@ -472,9 +472,10 @@ def play_audio_file(file_path: str, volume: Optional[int] = None, is_alarm: bool
                     pass
     
     if volume is None:
-        volume = get_configured_default_volume()
+        settings = read_json_file(SETTINGS_FILE, DEFAULT_SETTINGS)
+        volume = settings.get("volume", get_configured_default_volume())
         
-    # Set volume to target (e.g. alarm volume 80%)
+    # Set volume to target (e.g. current volume or alarm volume)
     set_system_volume(volume)
     
     # Ensure WAV format for playing
@@ -1603,6 +1604,12 @@ async def speak(text: str):
             
     async with audio_lock:
         stop_active_audio()
+        # Set system volume dynamically to match volume slider/settings
+        vol = settings.get("volume")
+        if vol is None:
+            vol = get_configured_default_volume()
+        set_system_volume(vol)
+        
         cmd = ["paplay", wav_path] if (os.environ.get("PULSE_SERVER") or os.path.exists("/tmp/pulse-socket")) else ["aplay", "-q", wav_path]
         try:
             global active_play_process
