@@ -1564,6 +1564,19 @@ async def speak(text: str):
                                 os.remove(temp_wav)
                             except Exception:
                                 pass
+                    elif voice_setting == "child":
+                        # Pitch shift to child voice using rubberband for high quality
+                        proc_ffmpeg = await asyncio.create_subprocess_exec(
+                            "ffmpeg", "-y", "-i", temp_wav, "-af", "rubberband=pitch=1.28", wav_path,
+                            stdout=asyncio.subprocess.PIPE,
+                            stderr=asyncio.subprocess.PIPE
+                        )
+                        await proc_ffmpeg.communicate()
+                        if os.path.exists(temp_wav):
+                            try:
+                                os.remove(temp_wav)
+                            except Exception:
+                                pass
                     else:
                         os.rename(temp_wav, wav_path)
                 else:
@@ -1578,7 +1591,7 @@ async def speak(text: str):
             
     if tts_engine != "piper":
         mp3_path = os.path.join(UPLOAD_DIR, f"tts_{ts}.mp3")
-        voice_id = "id-ID-GadisNeural" if voice_setting == "female" else "id-ID-ArdiNeural"
+        voice_id = "id-ID-GadisNeural" if voice_setting in ["female", "child"] else "id-ID-ArdiNeural"
         
         try:
             import edge_tts
@@ -2948,17 +2961,27 @@ async def api_generate_tts_ringtone(request: Request):
                         await proc_ffmpeg.communicate()
                         if os.path.exists(temp_wav):
                             os.remove(temp_wav)
+                    elif voice_setting == "child":
+                        # Pitch shift using rubberband for cute child voice
+                        proc_ffmpeg = await asyncio.create_subprocess_exec(
+                            "ffmpeg", "-y", "-i", temp_wav, "-af", "rubberband=pitch=1.28", file_path,
+                            stdout=asyncio.subprocess.PIPE,
+                            stderr=asyncio.subprocess.PIPE
+                        )
+                        await proc_ffmpeg.communicate()
+                        if os.path.exists(temp_wav):
+                            os.remove(temp_wav)
                     else:
                         os.rename(temp_wav, file_path)
                 else:
                     raise Exception("Piper failed to output wave file")
             else:
                 # Fallback to Edge-TTS
-                await generate_tts_file_async(text, "id-ID-GadisNeural" if voice_setting == "female" else "id-ID-ArdiNeural", file_path)
+                await generate_tts_file_async(text, "id-ID-GadisNeural" if voice_setting in ["female", "child"] else "id-ID-ArdiNeural", file_path)
         else:
             tts_voice = lang
             if lang == "default":
-                tts_voice = "id-ID-GadisNeural" if voice_setting == "female" else "id-ID-ArdiNeural"
+                tts_voice = "id-ID-GadisNeural" if voice_setting in ["female", "child"] else "id-ID-ArdiNeural"
             await generate_tts_file_async(text, tts_voice, file_path)
             
         # Trigger WAV conversion for playback compat
@@ -3558,17 +3581,27 @@ async def api_vn_tts(background_tasks: BackgroundTasks, request: Request):
                         await proc_ffmpeg.communicate()
                         if os.path.exists(temp_wav):
                             os.remove(temp_wav)
+                    elif voice_setting == "child":
+                        # Pitch shift using rubberband for cute child voice
+                        proc_ffmpeg = await asyncio.create_subprocess_exec(
+                            "ffmpeg", "-y", "-i", temp_wav, "-af", "rubberband=pitch=1.28", file_path,
+                            stdout=asyncio.subprocess.PIPE,
+                            stderr=asyncio.subprocess.PIPE
+                        )
+                        await proc_ffmpeg.communicate()
+                        if os.path.exists(temp_wav):
+                            os.remove(temp_wav)
                     else:
                         os.rename(temp_wav, file_path)
                 else:
                     raise Exception("Piper failed to output wave file")
             else:
                 # Fallback to Edge-TTS
-                await generate_tts_file_async(text, "id-ID-GadisNeural" if voice_setting == "female" else "id-ID-ArdiNeural", file_path)
+                await generate_tts_file_async(text, "id-ID-GadisNeural" if voice_setting in ["female", "child"] else "id-ID-ArdiNeural", file_path)
         else:
             tts_voice = lang
             if lang == "default":
-                tts_voice = "id-ID-GadisNeural" if voice_setting == "female" else "id-ID-ArdiNeural"
+                tts_voice = "id-ID-GadisNeural" if voice_setting in ["female", "child"] else "id-ID-ArdiNeural"
             await generate_tts_file_async(text, tts_voice, file_path)
             
         background_tasks.add_task(play_audio_file, file_path)
