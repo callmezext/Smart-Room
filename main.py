@@ -1024,7 +1024,7 @@ def wifi_sensing_loop():
                             short_mode = False
                         elif away_duration < 900: # 15 minutes
                             welcome_vol = 40
-                            welcome_msg = "Zex standby."
+                            welcome_msg = "Saya standby, Tuan."
                             short_mode = True
                         else: # Between 15m and 1h
                             welcome_vol = 55
@@ -1344,8 +1344,12 @@ def camera_thread_func():
                         print(f"Error checking snapshot: {e}")
                     time.sleep(max(0.01, 1.0 / get_current_cctv_fps()))
             else:
+                print("Failed to read frame from camera. Releasing camera device...")
+                if cap is not None:
+                    cap.release()
+                    cap = None
                 latest_frame = None
-                time.sleep(0.1)
+                time.sleep(2.0)
         else:
             if not active and cap is not None:
                 cap.release()

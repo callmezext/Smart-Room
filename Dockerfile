@@ -14,6 +14,8 @@ RUN apt-get update && apt-get install -y \
     bluez \
     dbus \
     network-manager \
+    iputils-ping \
+    arping \
     && rm -rf /var/lib/apt/lists/*
 
 # Install python packages
@@ -27,7 +29,8 @@ RUN pip install --no-cache-dir \
     gTTS \
     edge-tts \
     httpx \
-    beautifulsoup4
+    beautifulsoup4 \
+    scapy
 
 # Copy source code
 COPY . .
