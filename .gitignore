@@ -1,0 +1,17 @@
+# Python cache
+__pycache__/
+*.pyc
+
+# Local data & configuration (keeps user tokens/settings local)
+data/
+
+# User uploads & media (to avoid pushing large recordings/photos)
+uploads/
+snapshots/
+videos/
+music/
+
+# IDE/OS files
+.DS_Store
+.vscode/
+.idea/

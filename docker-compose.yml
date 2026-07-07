@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  unified-app:
+    build: .
+    container_name: unified-app
+    restart: unless-stopped
+    privileged: true
+    network_mode: host
+    environment:
+      - PULSE_SERVER=tcp:127.0.0.1:4713
+      - TZ=Asia/Jakarta
+    volumes:
+      - "/var/run/dbus/system_bus_socket:/var/run/dbus/system_bus_socket"
+      - "/dev:/dev"
+      - "/etc/localtime:/etc/localtime:ro"
+      - ".:/app"
+      - "./data:/app/data"
+      - "./uploads:/app/uploads"
+      - "/home/ais/voice-app/music:/app/music"
