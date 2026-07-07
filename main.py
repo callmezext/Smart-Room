@@ -1610,7 +1610,14 @@ async def speak(text: str):
             vol = get_configured_default_volume()
         set_system_volume(vol)
         
-        cmd = ["paplay", wav_path] if (os.environ.get("PULSE_SERVER") or os.path.exists("/tmp/pulse-socket")) else ["aplay", "-q", wav_path]
+        bt_sink = get_active_bt_sink()
+        if os.environ.get("PULSE_SERVER") or os.path.exists("/tmp/pulse-socket"):
+            if bt_sink:
+                cmd = ["paplay", "--device", bt_sink, wav_path]
+            else:
+                cmd = ["paplay", wav_path]
+        else:
+            cmd = ["aplay", "-q", wav_path]
         try:
             global active_play_process
             active_play_process = subprocess.Popen(cmd)
