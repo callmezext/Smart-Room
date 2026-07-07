@@ -2900,17 +2900,68 @@ async def api_upload_audio(file: UploadFile = File(...)):
 async def api_generate_tts_ringtone(request: Request):
     data = await request.json()
     text = data.get("text", "").strip()
-    lang = data.get("lang", "id-ID-GadisNeural")
+    lang = data.get("lang", "default")
     if not text:
         raise HTTPException(status_code=400, detail="Teks tidak boleh kosong")
         
+    settings = read_json_file(SETTINGS_FILE, DEFAULT_SETTINGS)
+    tts_engine = settings.get("tts_engine", "edge-tts")
+    voice_setting = settings.get("tts_voice", "female")
+    
     timestamp = int(time.time())
+    is_piper = (lang == "default" and tts_engine == "piper")
+    ext = ".wav" if is_piper else ".mp3"
+    
     safe_text = "".join(c for c in text[:15] if c.isalnum() or c in " -").strip().replace(" ", "_")
-    filename = f"tts-ringtone-{timestamp}-{safe_text}.mp3" if safe_text else f"tts-ringtone-{timestamp}.mp3"
+    filename = f"tts-ringtone-{timestamp}-{safe_text}{ext}" if safe_text else f"tts-ringtone-{timestamp}{ext}"
     file_path = os.path.join(UPLOAD_DIR, filename)
     
     try:
-        await generate_tts_file_async(text, lang, file_path)
+        if is_piper:
+            # Run Piper directly
+            piper_bin = "/app/bin/piper/piper"
+            model_path = "/app/models/id_ID-news_tts-medium.onnx"
+            if not os.path.exists(piper_bin):
+                piper_bin = os.path.join(os.path.dirname(__file__), "bin", "piper", "piper")
+                model_path = os.path.join(os.path.dirname(__file__), "models", "id_ID-news_tts-medium.onnx")
+                
+            if os.path.exists(piper_bin) and os.path.exists(model_path):
+                temp_wav = os.path.join(UPLOAD_DIR, f"ring_temp_{timestamp}.wav")
+                proc = await asyncio.create_subprocess_exec(
+                    piper_bin, "--model", model_path, "--output_file", temp_wav,
+                    "--length_scale", "1.12",
+                    "--sentence_silence", "0.35",
+                    stdin=asyncio.subprocess.PIPE,
+                    stdout=asyncio.subprocess.PIPE,
+                    stderr=asyncio.subprocess.PIPE
+                )
+                await proc.communicate(input=text.encode('utf-8'))
+                
+                if os.path.exists(temp_wav):
+                    if voice_setting == "male":
+                        # Pitch shift using rubberband for high quality
+                        proc_ffmpeg = await asyncio.create_subprocess_exec(
+                            "ffmpeg", "-y", "-i", temp_wav, "-af", "rubberband=pitch=0.82", file_path,
+                            stdout=asyncio.subprocess.PIPE,
+                            stderr=asyncio.subprocess.PIPE
+                        )
+                        await proc_ffmpeg.communicate()
+                        if os.path.exists(temp_wav):
+                            os.remove(temp_wav)
+                    else:
+                        os.rename(temp_wav, file_path)
+                else:
+                    raise Exception("Piper failed to output wave file")
+            else:
+                # Fallback to Edge-TTS
+                await generate_tts_file_async(text, "id-ID-GadisNeural" if voice_setting == "female" else "id-ID-ArdiNeural", file_path)
+        else:
+            tts_voice = lang
+            if lang == "default":
+                tts_voice = "id-ID-GadisNeural" if voice_setting == "female" else "id-ID-ArdiNeural"
+            await generate_tts_file_async(text, tts_voice, file_path)
+            
+        # Trigger WAV conversion for playback compat
         wav_path = file_path.rsplit(".", 1)[0] + "_play.wav"
         try:
             subprocess.run(
@@ -2920,7 +2971,7 @@ async def api_generate_tts_ringtone(request: Request):
         except Exception:
             pass
         add_log("CREATE", "TTS Ringtone", f"Membuat ringtone kustom TTS: '{text[:25]}'")
-        return {"status": "success", "filename": filename}
+        return {"status": "success", "filename": filename, "timestamp": timestamp}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
