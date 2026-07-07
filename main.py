@@ -1567,7 +1567,7 @@ async def speak(text: str):
                     elif voice_setting == "child":
                         # Pitch shift to child voice using rubberband for high quality
                         proc_ffmpeg = await asyncio.create_subprocess_exec(
-                            "ffmpeg", "-y", "-i", temp_wav, "-af", "rubberband=pitch=1.28", wav_path,
+                            "ffmpeg", "-y", "-i", temp_wav, "-af", "rubberband=pitch=1.15", wav_path,
                             stdout=asyncio.subprocess.PIPE,
                             stderr=asyncio.subprocess.PIPE
                         )
@@ -2964,7 +2964,7 @@ async def api_generate_tts_ringtone(request: Request):
                     elif voice_setting == "child":
                         # Pitch shift using rubberband for cute child voice
                         proc_ffmpeg = await asyncio.create_subprocess_exec(
-                            "ffmpeg", "-y", "-i", temp_wav, "-af", "rubberband=pitch=1.28", file_path,
+                            "ffmpeg", "-y", "-i", temp_wav, "-af", "rubberband=pitch=1.15", file_path,
                             stdout=asyncio.subprocess.PIPE,
                             stderr=asyncio.subprocess.PIPE
                         )
@@ -3584,7 +3584,7 @@ async def api_vn_tts(background_tasks: BackgroundTasks, request: Request):
                     elif voice_setting == "child":
                         # Pitch shift using rubberband for cute child voice
                         proc_ffmpeg = await asyncio.create_subprocess_exec(
-                            "ffmpeg", "-y", "-i", temp_wav, "-af", "rubberband=pitch=1.28", file_path,
+                            "ffmpeg", "-y", "-i", temp_wav, "-af", "rubberband=pitch=1.15", file_path,
                             stdout=asyncio.subprocess.PIPE,
                             stderr=asyncio.subprocess.PIPE
                         )
