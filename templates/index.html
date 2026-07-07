@@ -341,7 +341,7 @@
             
             <div class="flex flex-col leading-tight select-none">
               <span id="vnStatusTitle" class="text-xs font-bold text-zinc-300">Siap</span>
-              <span id="vnStatusDesc" class="text-[10px] text-zinc-500">Klik Mic / Upload / Kirim TTS</span>
+              <span id="vnStatusDesc" class="text-[10px] text-zinc-500">Mic: rekam suara • Upload: kirim file • TTS: ketik → suara di speaker</span>
             </div>
             
             <!-- visualizer inside the status row -->
@@ -355,7 +355,11 @@
           </div>
           
           <!-- TTS Panel Input -->
-          <div id="vnTtsPanel" class="hidden bg-zinc-950 border border-zinc-855 rounded-xl p-3 flex flex-col gap-3 transition-all duration-300">
+          <div id="vnTtsPanel" class="hidden bg-zinc-950 border border-zinc-800 rounded-xl p-3 flex-col gap-3 transition-all duration-300">
+            <p class="text-[10px] text-amber-400 flex items-center gap-1.5">
+              <i class="fa-solid fa-speaker text-amber-400"></i>
+              Suara akan diputar di <strong>speaker server (Pi)</strong>, bukan di browser.
+            </p>
             <div class="flex gap-2 items-center">
               <span class="text-[11px] font-bold text-purple-400 shrink-0">Suara:</span>
               <select id="vnTtsLang" class="flex-1 bg-zinc-900 border border-zinc-855 text-zinc-300 rounded-lg text-xs p-1.5 outline-none focus:ring-1 focus:ring-purple-500">
@@ -368,8 +372,10 @@
               </select>
             </div>
             <div class="flex gap-2">
-              <textarea id="vnTtsText" placeholder="Ketik teks yang ingin diubah menjadi suara..." rows="2" class="flex-1 bg-zinc-900 border border-zinc-855 text-zinc-200 rounded-lg p-2 text-xs outline-none focus:ring-1 focus:ring-purple-500 resize-none"></textarea>
-              <button id="vnTtsSubmit" class="bg-purple-600 hover:bg-purple-500 text-white px-3 py-2 rounded-lg text-xs font-bold transition-all shrink-0 flex items-center justify-center">Kirim</button>
+              <textarea id="vnTtsText" placeholder="Ketik teks yang ingin diputar di speaker kamar..." rows="2" class="flex-1 bg-zinc-900 border border-zinc-855 text-zinc-200 rounded-lg p-2 text-xs outline-none focus:ring-1 focus:ring-purple-500 resize-none"></textarea>
+              <button id="vnTtsSubmit" class="bg-purple-600 hover:bg-purple-500 text-white px-3 py-2 rounded-lg text-xs font-bold transition-all shrink-0 flex items-center justify-center gap-1">
+                <i class="fa-solid fa-volume-high"></i> Putar
+              </button>
             </div>
           </div>
           
@@ -2766,8 +2772,18 @@
 
     // --- WHISPER STT RECORDING ---
     let _whisperChunks = [];
+    let _whisperCountdown = null;
+    const WHISPER_MAX_SECONDS = 10;
+
     async function startWhisperRecording() {
-      if (isMinaListening || isMinaProcessing) return;
+      if (isMinaListening || isMinaProcessing) {
+        // If already recording, stop it
+        if (window._whisperRecorder && window._whisperRecorder.state === 'recording') {
+          clearInterval(_whisperCountdown);
+          window._whisperRecorder.stop();
+        }
+        return;
+      }
       let stream;
       try {
         stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -2780,20 +2796,37 @@
       window._whisperRecorder = recorder;
       isMinaListening = true;
       isRecording = true;
+
+      // UI: recording state
       document.getElementById("minaBigMicBtn")?.classList.add("recording-vn");
       const micIcon = document.getElementById("minaBigMicIcon");
-      if (micIcon) micIcon.className = "fa-solid fa-square text-zinc-300 text-2xl animate-pulse";
+      if (micIcon) micIcon.className = "fa-solid fa-stop text-white text-2xl";
       document.getElementById("minaMicRing")?.classList.remove("opacity-0", "scale-90");
       document.getElementById("minaMicRing")?.classList.add("opacity-100", "scale-110", "pulsing-mic");
-      const statusText = document.getElementById("minaMicStatus");
-      if (statusText) statusText.textContent = "Merekam... (ketuk lagi untuk berhenti)";
       document.getElementById("minaWaveform")?.classList.remove("hidden");
       document.getElementById("minaWaveform")?.classList.add("flex");
+
+      // Countdown timer
+      let secsLeft = WHISPER_MAX_SECONDS;
+      const statusText = document.getElementById("minaMicStatus");
+      const updateCountdown = () => {
+        if (statusText) statusText.textContent = `🔴 Merekam... ${secsLeft}s (ketuk lagi untuk kirim)`;
+        secsLeft--;
+        if (secsLeft < 0) {
+          clearInterval(_whisperCountdown);
+          if (recorder.state === 'recording') recorder.stop();
+        }
+      };
+      updateCountdown();
+      _whisperCountdown = setInterval(updateCountdown, 1000);
+
       recorder.ondataavailable = e => { if (e.data.size > 0) _whisperChunks.push(e.data); };
       recorder.onstop = async () => {
+        clearInterval(_whisperCountdown);
         isMinaListening = false;
         isRecording = false;
-        document.getElementById("micBtn").className = "w-10 h-10 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 flex items-center justify-center shrink-0 border border-zinc-700 transition-all active:scale-90";
+
+        // Reset UI
         document.getElementById("minaBigMicBtn")?.classList.remove("recording-vn");
         const micIcon2 = document.getElementById("minaBigMicIcon");
         if (micIcon2) micIcon2.className = "fa-solid fa-microphone text-zinc-300 text-2xl";
@@ -2801,9 +2834,16 @@
         document.getElementById("minaMicRing")?.classList.remove("opacity-100", "scale-110", "pulsing-mic");
         document.getElementById("minaWaveform")?.classList.add("hidden");
         stream.getTracks().forEach(t => t.stop());
-        if (_whisperChunks.length === 0) return;
-        const statusText2 = document.getElementById("minaMicStatus");
-        if (statusText2) statusText2.textContent = "Zex sedang mendengarkan (Whisper)...";
+
+        if (_whisperChunks.length === 0) {
+          if (statusText) statusText.textContent = "Ketuk mic untuk berbicara";
+          return;
+        }
+
+        // Processing state
+        if (statusText) statusText.textContent = "⏳ Mentranskrip suara...";
+        isMinaProcessing = true;
+
         try {
           const blob = new Blob(_whisperChunks, { type: "audio/webm" });
           const formData = new FormData();
@@ -2812,19 +2852,21 @@
           const data = await res.json();
           const transcript = (data.transcript || "").trim();
           if (transcript) {
-            if (statusText2) statusText2.textContent = "Selesai mendengarkan...";
+            if (statusText) statusText.textContent = `✅ "${transcript.substring(0, 30)}${transcript.length > 30 ? '...' : ''}"`;
             processMinaVoiceInput(transcript);
           } else {
-            if (statusText2) statusText2.textContent = "Ketuk mic untuk berbicara";
+            isMinaProcessing = false;
+            if (statusText) statusText.textContent = "⚠️ Suara tidak terdeteksi, coba lagi";
           }
         } catch (err) {
           console.error("Whisper STT error:", err);
-          if (statusText2) statusText2.textContent = "⚠️ Whisper gagal, coba lagi";
+          isMinaProcessing = false;
+          if (statusText) statusText.textContent = "⚠️ Whisper gagal — coba lagi";
         }
       };
       recorder.start();
-      document.getElementById("micBtn").className = "w-10 h-10 rounded-xl bg-red-600 hover:bg-red-500 text-white flex items-center justify-center shrink-0 transition-all pulsing-mic border border-red-500";
     }
+
 
     async function processMinaVoiceInput(transcript) {
       const mode = document.getElementById("minaModeSelect").value;
@@ -3388,12 +3430,13 @@
 
       // TTS Panel Toggle
       vnTtsBtn?.addEventListener('click', () => {
-        const isHidden = vnTtsPanel.classList.contains('hidden');
+        const isHidden = vnTtsPanel.style.display === 'none' || vnTtsPanel.style.display === '';
         if (isHidden) {
-          vnTtsPanel.classList.remove('hidden');
+          vnTtsPanel.style.display = 'flex';
+          vnTtsPanel.style.flexDirection = 'column';
           vnTtsText?.focus();
         } else {
-          vnTtsPanel.classList.add('hidden');
+          vnTtsPanel.style.display = 'none';
           if (vnTtsText) vnTtsText.value = '';
         }
       });
