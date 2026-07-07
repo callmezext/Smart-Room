@@ -15,3 +15,11 @@ music/
 .DS_Store
 .vscode/
 .idea/
+
+# Local AI models (large binary files - download separately)
+models/
+bin/whisper/*.so*
+bin/whisper/whisper-cli
+
+# Piper TTS binary (download separately)
+bin/piper/

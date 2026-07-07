@@ -203,7 +203,7 @@
         <i class="fa-solid fa-gauge-high mr-1"></i>Panel
       </button>
       <button onclick="switchTab('assistant')" id="desk-nav-assistant" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-zinc-400 hover:text-zinc-200">
-        <i class="fa-solid fa-microphone mr-1"></i>Mina
+        <i class="fa-solid fa-microphone mr-1"></i>Zex
       </button>
       <button onclick="switchTab('alarms')" id="desk-nav-alarms" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-zinc-400 hover:text-zinc-200">
         <i class="fa-solid fa-clock mr-1"></i>Alarm &amp; Musik
@@ -402,8 +402,8 @@
             <div class="flex items-center gap-2">
               <i class="fa-solid fa-robot text-purple-400 text-sm"></i>
               <div>
-                <h2 class="text-sm font-bold text-zinc-200">Asisten Mina AI</h2>
-                <p class="text-[10px] text-zinc-500">Mina • Gemini 3.5 Flash</p>
+                <h2 class="text-sm font-bold text-zinc-200">Asisten Zex AI</h2>
+                <p class="text-[10px] text-zinc-500">Zex • Gemini 3.5 Flash</p>
               </div>
             </div>
             <div class="flex items-center gap-2">
@@ -489,7 +489,7 @@
                   <i class="fa-solid fa-robot text-xs text-purple-400"></i>
                 </div>
                 <div class="bg-zinc-950/70 border border-zinc-800/80 rounded-2xl px-3.5 py-2.5 max-w-[85%]">
-                  <p class="text-xs leading-relaxed text-zinc-300">Halo Guntur! Aku Mina, asisten kamar pintarmu. Ada yang bisa dibantu hari ini?</p>
+                  <p class="text-xs leading-relaxed text-zinc-300">Halo! Aku Zex, asisten kamar pintarmu. Ada yang bisa dibantu hari ini?</p>
                 </div>
               </div>
             </div>
@@ -661,7 +661,7 @@
 
             <!-- Prompt System -->
             <div class="flex flex-col gap-1.5">
-              <label class="text-xs font-semibold text-zinc-400">System Prompt Asisten (Mina)</label>
+              <label class="text-xs font-semibold text-zinc-400">System Prompt Asisten (Zex)</label>
               <textarea id="systemPromptArea" rows="4" class="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-2.5 text-xs text-zinc-300 outline-none focus:ring-1 focus:ring-brand-500"></textarea>
             </div>
 
@@ -677,10 +677,24 @@
               </div>
               
               <div class="flex flex-col gap-1.5">
-                <label class="text-xs font-semibold text-zinc-400">Suara Asisten</label>
+                <label class="text-xs font-semibold text-zinc-400">Suara Asisten (Zex)</label>
                 <select id="voiceGenderSelect" class="bg-zinc-950 border border-zinc-800 text-zinc-300 rounded-lg text-xs p-2.5 focus:ring-1 focus:ring-brand-500 outline-none">
-                  <option value="female">Wanita (Gadis)</option>
-                  <option value="male">Pria (Ardi)</option>
+                  <option value="female">Wanita (Cewe)</option>
+                  <option value="male">Pria (Cowo)</option>
+                </select>
+              </div>
+              <div class="flex flex-col gap-1.5">
+                <label class="text-xs font-semibold text-zinc-400">Mesin TTS Zex</label>
+                <select id="ttsEngineSelect" class="bg-zinc-950 border border-zinc-800 text-zinc-300 rounded-lg text-xs p-2.5 focus:ring-1 focus:ring-brand-500 outline-none">
+                  <option value="edge-tts">Edge-TTS (Online, Natural)</option>
+                  <option value="piper">Piper TTS (Lokal, Bahasa Indonesia)</option>
+                </select>
+              </div>
+              <div class="flex flex-col gap-1.5">
+                <label class="text-xs font-semibold text-zinc-400">Mesin STT (Pendengar)</label>
+                <select id="sttEngineSelect" class="bg-zinc-950 border border-zinc-800 text-zinc-300 rounded-lg text-xs p-2.5 focus:ring-1 focus:ring-brand-500 outline-none">
+                  <option value="browser">Browser Web Speech API (Default)</option>
+                  <option value="whisper">Whisper (Lokal, Bahasa Indonesia)</option>
                 </select>
               </div>
             </div>
@@ -892,7 +906,7 @@
                 <div class="flex items-center justify-between bg-zinc-950 border border-zinc-850 rounded-xl p-3 text-xs">
                   <div class="flex flex-col gap-0.5">
                     <span class="font-bold text-zinc-300">Aktifkan Pendeteksi Kehadiran</span>
-                    <span class="text-[10px] text-zinc-500">Mina menyambut Anda otomatis berdasarkan koneksi Wi-Fi/Ping atau kamera.</span>
+                    <span class="text-[10px] text-zinc-500">Zex menyambut Anda otomatis berdasarkan koneksi Wi-Fi/Ping atau kamera.</span>
                   </div>
                   <label class="relative inline-flex items-center cursor-pointer shrink-0">
                     <input type="checkbox" id="wifiSensingToggle" class="sr-only peer">
@@ -958,7 +972,7 @@
                 <div class="flex items-center justify-between bg-zinc-950 border border-zinc-850 rounded-xl p-3 text-xs">
                   <div class="flex flex-col gap-0.5">
                     <span class="font-bold text-zinc-300">Laporan Suara Pagi (Briefing Alarm)</span>
-                    <span class="text-[10px] text-zinc-500">Mina membacakan jadwal & info saat alarm berbunyi.</span>
+                    <span class="text-[10px] text-zinc-500">Zex membacakan jadwal & info saat alarm berbunyi.</span>
                   </div>
                   <label class="relative inline-flex items-center cursor-pointer shrink-0">
                     <input type="checkbox" id="alarmBriefingToggle" class="sr-only peer">
@@ -1210,7 +1224,7 @@
       <i class="fa-solid fa-gauge-high text-sm"></i> Panel
     </button>
     <button onclick="switchTab('assistant')" class="nav-btn flex-1 py-1.5 flex flex-col items-center gap-1 text-[10px] font-bold text-zinc-400" id="nav-assistant">
-      <i class="fa-solid fa-microphone text-sm"></i> Mina
+      <i class="fa-solid fa-microphone text-sm"></i> Zex
     </button>
     <button onclick="switchTab('alarms')" class="nav-btn flex-1 py-1.5 flex flex-col items-center gap-1 text-[10px] font-bold text-zinc-400" id="nav-alarms">
       <i class="fa-solid fa-clock text-sm"></i> Alarm
@@ -1493,7 +1507,7 @@
         const res = await fetch("/api/audio/stop", { method: "POST" });
         const data = await res.json();
         if (data.status === "success") {
-          addChatBubble("Mina", "Semua suara dihentikan.");
+          addChatBubble("Zex", "Semua suara dihentikan.");
           loadMusicList();
           loadAlarms();
         }
@@ -2457,7 +2471,7 @@
         removeLoadingBubble(loadingId);
         
         if (data.reply) {
-          addChatBubble("Mina", data.reply);
+          addChatBubble("Zex", data.reply);
         }
         
         if (data.action) {
@@ -2468,7 +2482,7 @@
         loadMusicList();
       } catch (err) {
         removeLoadingBubble(loadingId);
-        addChatBubble("Mina", `⚠️ ${err.message || "Gagal menghubungi server asisten."}`);
+        addChatBubble("Zex", `⚠️ ${err.message || "Gagal menghubungi server asisten."}`);
         console.error(err);
       }
     }
@@ -2510,7 +2524,7 @@
           <i class="fa-solid fa-robot text-xs text-purple-400"></i>
         </div>
         <div class="bg-zinc-950/70 border border-zinc-800/80 rounded-2xl px-3.5 py-2.5 max-w-[85%]">
-          <p class="text-xs text-zinc-500"><i class="fa-solid fa-circle-notch fa-spin mr-1"></i> Mina sedang mengetik...</p>
+          <p class="text-xs text-zinc-500"><i class="fa-solid fa-circle-notch fa-spin mr-1"></i> Zex sedang berpikir...</p>
         </div>
       `;
       container.appendChild(bubble);
@@ -2523,7 +2537,7 @@
     }
 
     async function clearChatHistory() {
-      if (!await customConfirm("Hapus Chat", "Hapus seluruh riwayat percakapan dengan Mina?", "warning")) return;
+      if (!await customConfirm("Hapus Chat", "Hapus seluruh riwayat percakapan dengan Zex?", "warning")) return;
       try {
         await fetch("/api/chat/clear", { method: "POST" });
         const container = document.getElementById("chatMessages");
@@ -2533,7 +2547,7 @@
               <i class="fa-solid fa-robot text-xs text-purple-400"></i>
             </div>
             <div class="bg-zinc-950/70 border border-zinc-800/80 rounded-2xl px-3.5 py-2.5 max-w-[85%]">
-              <p class="text-xs leading-relaxed text-zinc-300">Riwayat percakapan dihapus. Mina siap kembali!</p>
+              <p class="text-xs leading-relaxed text-zinc-300">Riwayat percakapan dihapus. Zex siap kembali!</p>
             </div>
           </div>
         `;
@@ -2698,7 +2712,7 @@
       isMinaHandsfree = checked;
       const statusTitle = document.getElementById("minaMicStatus");
       if (checked) {
-        addLogItem("INFO", "Mina AI", "Mode Hands-Free diaktifkan.");
+        addLogItem("INFO", "Zex AI", "Mode Hands-Free diaktifkan.");
         if (statusTitle) statusTitle.textContent = "Hands-free Aktif...";
         if (!isMinaListening && !isMinaProcessing) {
           startMinaListening();
@@ -2721,6 +2735,14 @@
     }
 
     async function startMinaListening() {
+      // Check which STT engine to use
+      const sttEl = document.getElementById("sttEngineSelect");
+      const sttEngine = sttEl ? sttEl.value : "browser";
+      
+      if (sttEngine === "whisper") {
+        await startWhisperRecording();
+        return;
+      }
       if (!recognition) {
         await customAlert("Tidak Didukung", "Browser tidak mendukung Speech Recognition.", "error");
         return;
@@ -2734,10 +2756,74 @@
 
     function stopMinaListening() {
       try {
-        recognition.stop();
-      } catch (e) {
-        // Safe check
+        recognition?.stop();
+      } catch (e) { /* safe */ }
+      // Also stop any whisper recording
+      if (window._whisperRecorder && window._whisperRecorder.state !== 'inactive') {
+        try { window._whisperRecorder.stop(); } catch (e) {}
       }
+    }
+
+    // --- WHISPER STT RECORDING ---
+    let _whisperChunks = [];
+    async function startWhisperRecording() {
+      if (isMinaListening || isMinaProcessing) return;
+      let stream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      } catch (e) {
+        await customAlert("Mikrofon", "Izin mikrofon ditolak browser.", "error");
+        return;
+      }
+      _whisperChunks = [];
+      const recorder = new MediaRecorder(stream);
+      window._whisperRecorder = recorder;
+      isMinaListening = true;
+      isRecording = true;
+      document.getElementById("minaBigMicBtn")?.classList.add("recording-vn");
+      const micIcon = document.getElementById("minaBigMicIcon");
+      if (micIcon) micIcon.className = "fa-solid fa-square text-zinc-300 text-2xl animate-pulse";
+      document.getElementById("minaMicRing")?.classList.remove("opacity-0", "scale-90");
+      document.getElementById("minaMicRing")?.classList.add("opacity-100", "scale-110", "pulsing-mic");
+      const statusText = document.getElementById("minaMicStatus");
+      if (statusText) statusText.textContent = "Merekam... (ketuk lagi untuk berhenti)";
+      document.getElementById("minaWaveform")?.classList.remove("hidden");
+      document.getElementById("minaWaveform")?.classList.add("flex");
+      recorder.ondataavailable = e => { if (e.data.size > 0) _whisperChunks.push(e.data); };
+      recorder.onstop = async () => {
+        isMinaListening = false;
+        isRecording = false;
+        document.getElementById("micBtn").className = "w-10 h-10 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 flex items-center justify-center shrink-0 border border-zinc-700 transition-all active:scale-90";
+        document.getElementById("minaBigMicBtn")?.classList.remove("recording-vn");
+        const micIcon2 = document.getElementById("minaBigMicIcon");
+        if (micIcon2) micIcon2.className = "fa-solid fa-microphone text-zinc-300 text-2xl";
+        document.getElementById("minaMicRing")?.classList.add("opacity-0", "scale-90");
+        document.getElementById("minaMicRing")?.classList.remove("opacity-100", "scale-110", "pulsing-mic");
+        document.getElementById("minaWaveform")?.classList.add("hidden");
+        stream.getTracks().forEach(t => t.stop());
+        if (_whisperChunks.length === 0) return;
+        const statusText2 = document.getElementById("minaMicStatus");
+        if (statusText2) statusText2.textContent = "Zex sedang mendengarkan (Whisper)...";
+        try {
+          const blob = new Blob(_whisperChunks, { type: "audio/webm" });
+          const formData = new FormData();
+          formData.append("file", blob, "audio.webm");
+          const res = await fetch("/api/stt/whisper", { method: "POST", body: formData });
+          const data = await res.json();
+          const transcript = (data.transcript || "").trim();
+          if (transcript) {
+            if (statusText2) statusText2.textContent = "Selesai mendengarkan...";
+            processMinaVoiceInput(transcript);
+          } else {
+            if (statusText2) statusText2.textContent = "Ketuk mic untuk berbicara";
+          }
+        } catch (err) {
+          console.error("Whisper STT error:", err);
+          if (statusText2) statusText2.textContent = "⚠️ Whisper gagal, coba lagi";
+        }
+      };
+      recorder.start();
+      document.getElementById("micBtn").className = "w-10 h-10 rounded-xl bg-red-600 hover:bg-red-500 text-white flex items-center justify-center shrink-0 transition-all pulsing-mic border border-red-500";
     }
 
     async function processMinaVoiceInput(transcript) {
@@ -2753,7 +2839,7 @@
         document.getElementById("minaResponseCard").style.display = "none";
         
         isMinaProcessing = true;
-        document.getElementById("minaMicStatus").textContent = "Mina sedang berpikir...";
+        document.getElementById("minaMicStatus").textContent = "Zex sedang berpikir...";
         
         try {
           const res = await fetch("/api/chat", {
@@ -2837,6 +2923,10 @@
         document.getElementById("systemPromptArea").value = data.system_prompt;
         document.getElementById("activeModelSelect").value = data.active_model;
         document.getElementById("voiceGenderSelect").value = data.tts_voice;
+        const ttsEl = document.getElementById("ttsEngineSelect");
+        if (ttsEl) ttsEl.value = data.tts_engine || "edge-tts";
+        const sttEl = document.getElementById("sttEngineSelect");
+        if (sttEl) sttEl.value = data.stt_engine || "browser";
         
         // CCTV Snapshot preferences
         const cctvToggle = document.getElementById("cctvSnapshotToggle");
@@ -3112,6 +3202,8 @@
       const prompt = document.getElementById("systemPromptArea").value;
       const model = document.getElementById("activeModelSelect").value;
       const voice = document.getElementById("voiceGenderSelect").value;
+      const ttsEngine = document.getElementById("ttsEngineSelect")?.value || "edge-tts";
+      const sttEngine = document.getElementById("sttEngineSelect")?.value || "browser";
       
       const cctvSnapEnabled = document.getElementById("cctvSnapshotToggle")?.checked || false;
       const cctvSnapInterval = parseInt(document.getElementById("cctvSnapshotIntervalSelect")?.value) || 10;
@@ -3166,7 +3258,9 @@
         cctv_fps_day: fpsDay,
         cctv_fps_night: fpsNight,
         cctv_fps_night_start_hour: fpsNightStart,
-        cctv_fps_night_end_hour: fpsNightEnd
+        cctv_fps_night_end_hour: fpsNightEnd,
+        tts_engine: ttsEngine,
+        stt_engine: sttEngine
       };
 
 

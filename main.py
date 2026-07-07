@@ -127,7 +127,7 @@ DAY_LABELS = {
 }
 
 DEFAULT_SYSTEM_PROMPT = (
-    "Anda adalah Mina, asisten suara pintar berbasis Gemini AI untuk kamar tidur pintar (Smart Room). "
+    "Anda adalah Zex, asisten suara pintar berbasis Gemini AI untuk kamar tidur pintar (Smart Room). "
     "Anda dibekali dengan berbagai tools canggih (alarm, cuaca, pencarian web, pemutar musik lokal, radio streaming, YouTube, timer, mode rutinitas, shortcut favorit, briefing, dan pengatur volume).\n\n"
     "PRINSIP KOMUNIKASI (SANGAT PENTING):\n"
     "1. RESPONS SINGKAT & PADAT: Karena respons Anda akan diubah menjadi suara (TTS) di speaker, jawablah dengan sangat singkat, ramah, langsung ke inti, dan MAKSIMAL 2 KALIMAT.\n"
@@ -144,7 +144,7 @@ DEFAULT_SYSTEM_PROMPT = (
     "6. BRIEFING (get_briefing): gunakan untuk ringkasan pagi/harian.\n"
     "7. MEMORI (remember_fact): gunakan untuk menyimpan preferensi, jadwal, nama, kota default, dan kebiasaan user.\n"
     "8. TO-DO (add_todo / complete_todo): gunakan untuk mencatat dan menuntaskan tugas.\n"
-    "9. ROUTINE/FAVORITE: gunakan run_routine dan run_favorite untuk preset yang sudah tersedia."
+    "9. ROUTINE/FAVORITE: gunakan run_routine and run_favorite untuk preset yang sudah tersedia."
 )
 
 DEFAULT_SETTINGS = {
@@ -177,6 +177,8 @@ DEFAULT_SETTINGS = {
     "cctv_fps_night": 10,
     "cctv_fps_night_start_hour": 0,
     "cctv_fps_night_end_hour": 4,
+    "tts_engine": "edge-tts",
+    "stt_engine": "browser",
 }
 
 
@@ -1021,7 +1023,7 @@ def wifi_sensing_loop():
                             short_mode = False
                         elif away_duration < 900: # 15 minutes
                             welcome_vol = 40
-                            welcome_msg = "Mina standby."
+                            welcome_msg = "Zex standby."
                             short_mode = True
                         else: # Between 15m and 1h
                             welcome_vol = 55
@@ -1517,35 +1519,88 @@ def play_youtube_audio(query: str, *, user_requested: bool = True) -> str:
 
 async def speak(text: str):
     ts = int(time.time() * 1000)
-    mp3_path = os.path.join(UPLOAD_DIR, f"tts_{ts}.mp3")
     wav_path = os.path.join(UPLOAD_DIR, f"tts_{ts}.wav")
     
     settings = read_json_file(SETTINGS_FILE, DEFAULT_SETTINGS)
+    tts_engine = settings.get("tts_engine", "edge-tts")
     voice_setting = settings.get("tts_voice", "female")
-    voice_id = "id-ID-GadisNeural" if voice_setting == "female" else "id-ID-ArdiNeural"
     
-    try:
-        import edge_tts
-        comm = edge_tts.Communicate(text, voice_id)
-        await comm.save(mp3_path)
-    except Exception as e:
-        print(f"Edge TTS failed: {e}. Falling back to gTTS.")
+    if tts_engine == "piper":
+        piper_bin = "/app/bin/piper/piper"
+        model_path = "/app/models/id_ID-news_tts-medium.onnx"
+        
+        if not os.path.exists(piper_bin) or not os.path.exists(model_path):
+            # Fallback path check
+            piper_bin = os.path.join(os.path.dirname(__file__), "bin", "piper", "piper")
+            model_path = os.path.join(os.path.dirname(__file__), "models", "id_ID-news_tts-medium.onnx")
+            
+        if os.path.exists(piper_bin) and os.path.exists(model_path):
+            try:
+                temp_wav = os.path.join(UPLOAD_DIR, f"tts_{ts}_temp.wav")
+                
+                # Execute Piper TTS process using asyncio
+                proc = await asyncio.create_subprocess_exec(
+                    piper_bin, "--model", model_path, "--output_file", temp_wav,
+                    stdin=asyncio.subprocess.PIPE,
+                    stdout=asyncio.subprocess.PIPE,
+                    stderr=asyncio.subprocess.PIPE
+                )
+                stdout, stderr = await proc.communicate(input=text.encode('utf-8'))
+                
+                if os.path.exists(temp_wav):
+                    if voice_setting == "male":
+                        # Pitch shift to male voice using ffmpeg
+                        # news_tts-medium sample rate is 22050Hz
+                        proc_ffmpeg = await asyncio.create_subprocess_exec(
+                            "ffmpeg", "-y", "-i", temp_wav, "-af", "asetrate=22050*0.82,atempo=1.22", wav_path,
+                            stdout=asyncio.subprocess.PIPE,
+                            stderr=asyncio.subprocess.PIPE
+                        )
+                        await proc_ffmpeg.communicate()
+                        if os.path.exists(temp_wav):
+                            try:
+                                os.remove(temp_wav)
+                            except Exception:
+                                pass
+                    else:
+                        os.rename(temp_wav, wav_path)
+                else:
+                    print(f"Piper failed to output wave file: {stderr.decode('utf-8', errors='ignore')}")
+                    tts_engine = "edge-tts"
+            except Exception as e:
+                print(f"Piper exception: {e}. Falling back to Edge-TTS.")
+                tts_engine = "edge-tts"
+        else:
+            print(f"Piper binary or model missing. Falling back to Edge-TTS.")
+            tts_engine = "edge-tts"
+            
+    if tts_engine != "piper":
+        mp3_path = os.path.join(UPLOAD_DIR, f"tts_{ts}.mp3")
+        voice_id = "id-ID-GadisNeural" if voice_setting == "female" else "id-ID-ArdiNeural"
+        
         try:
-            from gtts import gTTS
-            loop = asyncio.get_running_loop()
-            await loop.run_in_executor(None, lambda: gTTS(text=text, lang="id").save(mp3_path))
-        except Exception as ex:
-            print(f"gTTS failed: {ex}")
+            import edge_tts
+            comm = edge_tts.Communicate(text, voice_id)
+            await comm.save(mp3_path)
+        except Exception as e:
+            print(f"Edge TTS failed: {e}. Falling back to gTTS.")
+            try:
+                from gtts import gTTS
+                loop = asyncio.get_running_loop()
+                await loop.run_in_executor(None, lambda: gTTS(text=text, lang="id").save(mp3_path))
+            except Exception as ex:
+                print(f"gTTS failed: {ex}")
+                return
+                
+        try:
+            subprocess.run(["ffmpeg", "-y", "-i", mp3_path, "-ac", "1", "-ar", "16000", wav_path], capture_output=True, text=True)
+            if os.path.exists(mp3_path):
+                os.remove(mp3_path)
+        except Exception as e:
+            print(f"FFmpeg conversion failed: {e}")
             return
             
-    try:
-        subprocess.run(["ffmpeg", "-y", "-i", mp3_path, "-ac", "1", "-ar", "16000", wav_path], capture_output=True, text=True)
-    except Exception as e:
-        print(f"FFmpeg conversion failed: {e}")
-        return
-        
     async with audio_lock:
-        # Play speak wav without modifying volume (unless speaker needs to wake up, but we just use speak)
         stop_active_audio()
         cmd = ["paplay", wav_path] if (os.environ.get("PULSE_SERVER") or os.path.exists("/tmp/pulse-socket")) else ["aplay", "-q", wav_path]
         try:
@@ -2945,6 +3000,10 @@ async def post_settings(request: Request):
         settings["cctv_fps_night_start_hour"] = min(23, max(0, int(data["cctv_fps_night_start_hour"])))
     if "cctv_fps_night_end_hour" in data:
         settings["cctv_fps_night_end_hour"] = min(23, max(0, int(data["cctv_fps_night_end_hour"])))
+    if "tts_engine" in data:
+        settings["tts_engine"] = data["tts_engine"].strip()
+    if "stt_engine" in data:
+        settings["stt_engine"] = data["stt_engine"].strip()
 
     write_json_file(SETTINGS_FILE, settings)
     return {"status": "success", "settings": settings}
@@ -3062,6 +3121,82 @@ async def rename_music(request: Request):
         raise HTTPException(status_code=500, detail=str(e))
 
 # Voice Assistant Endpoints
+
+@app.post("/api/stt/whisper")
+async def api_stt_whisper(file: UploadFile = File(...)):
+    """Transcribe uploaded audio file using local whisper-cli."""
+    WHISPER_BIN = "/app/bin/whisper/whisper-cli"
+    WHISPER_MODEL = "/app/models/ggml-base.bin"
+    WHISPER_LIBS = "/app/bin/whisper"
+    
+    if not os.path.exists(WHISPER_BIN):
+        # Try host path fallback
+        WHISPER_BIN = os.path.join(os.path.dirname(__file__), "bin", "whisper", "whisper-cli")
+        WHISPER_MODEL = os.path.join(os.path.dirname(__file__), "models", "ggml-base.bin")
+        WHISPER_LIBS = os.path.join(os.path.dirname(__file__), "bin", "whisper")
+
+    if not os.path.exists(WHISPER_BIN):
+        raise HTTPException(status_code=501, detail="Whisper-cli not installed")
+    if not os.path.exists(WHISPER_MODEL):
+        raise HTTPException(status_code=501, detail="Whisper model not found")
+
+    ts = int(time.time() * 1000)
+    ext = os.path.splitext(file.filename or "audio.webm")[1] or ".webm"
+    raw_path = os.path.join(UPLOAD_DIR, f"stt_{ts}{ext}")
+    wav_path = os.path.join(UPLOAD_DIR, f"stt_{ts}.wav")
+    
+    try:
+        with open(raw_path, "wb") as f:
+            f.write(await file.read())
+        
+        # Convert to 16kHz mono WAV for whisper
+        proc = await asyncio.create_subprocess_exec(
+            "ffmpeg", "-y", "-i", raw_path, "-ar", "16000", "-ac", "1", "-c:a", "pcm_s16le", wav_path,
+            stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
+        )
+        await proc.communicate()
+        
+        if not os.path.exists(wav_path):
+            raise HTTPException(status_code=500, detail="Failed to convert audio")
+        
+        # Run whisper-cli
+        env = os.environ.copy()
+        env["LD_LIBRARY_PATH"] = WHISPER_LIBS + ":" + env.get("LD_LIBRARY_PATH", "")
+        
+        proc = await asyncio.create_subprocess_exec(
+            WHISPER_BIN,
+            "--model", WHISPER_MODEL,
+            "--file", wav_path,
+            "--language", "id",
+            "--output-txt",
+            "--no-prints",
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+            env=env
+        )
+        stdout, stderr = await proc.communicate()
+        
+        # Whisper outputs text to <file>.txt
+        txt_path = wav_path + ".txt"
+        transcript = ""
+        if os.path.exists(txt_path):
+            with open(txt_path, "r", encoding="utf-8") as f:
+                transcript = f.read().strip()
+            os.remove(txt_path)
+        elif stdout:
+            transcript = stdout.decode("utf-8", errors="ignore").strip()
+        
+        return {"transcript": transcript}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        for p in [raw_path, wav_path]:
+            if p and os.path.exists(p):
+                try:
+                    os.remove(p)
+                except Exception:
+                    pass
+
 @app.post("/api/chat")
 async def chat(background_tasks: BackgroundTasks, request: Request):
     data = await request.json()
