@@ -4313,11 +4313,41 @@
     }
   </style>
 
+  <!-- WHATSAPP CENTER POPUP MODAL -->
+  <div id="waCenterModal" style="display:none" class="fixed inset-0 z-[100] bg-black/75 flex items-center justify-center p-4 backdrop-blur-md transition-all duration-350 opacity-0">
+    <div class="bg-zinc-900 border border-zinc-800 w-full max-w-sm rounded-3xl p-6 flex flex-col items-center text-center gap-5 shadow-2xl scale-90 transition-all duration-300" id="waCenterContent">
+      <!-- Icon/Avatar Area -->
+      <div class="relative w-16 h-16 rounded-full bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20 text-emerald-400">
+        <i class="fa-brands fa-whatsapp text-3xl"></i>
+        <!-- Ping effect -->
+        <span class="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full border-2 border-zinc-900 flex items-center justify-center text-[8px] text-white font-bold">1</span>
+      </div>
+      
+      <!-- Text details -->
+      <div class="flex flex-col gap-2">
+        <h3 class="text-base font-extrabold text-zinc-200">Butuh Bantuan Zex?</h3>
+        <p class="text-xs text-zinc-400 leading-relaxed px-2">
+          Halo, saya Zex! Jika Anda mengalami kendala atau membutuhkan bantuan/kustomisasi lebih lanjut pada Smart Room ini, Anda bisa langsung chat saya via WhatsApp.
+        </p>
+      </div>
+      
+      <!-- Action buttons -->
+      <div class="flex flex-col gap-2 w-full mt-2">
+        <a href="https://wa.me/6285704625361" target="_blank" onclick="closeWaCenterModal()" class="w-full bg-emerald-600 hover:bg-emerald-500 hover:scale-[1.02] text-white py-3 rounded-xl text-xs font-bold transition-all duration-200 flex items-center justify-center gap-2 shadow-lg shadow-emerald-950/40">
+          <i class="fa-brands fa-whatsapp text-sm"></i> Chat Sekarang
+        </a>
+        <button onclick="closeWaCenterModal()" class="w-full bg-zinc-800/60 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-300 py-2.5 rounded-xl text-[11px] font-bold transition-all duration-200">
+          Nanti Saja
+        </button>
+      </div>
+    </div>
+  </div>
+
   <script>
     function initWhatsAppWidget() {
+      // Small FAB popup after 2 seconds
       const popup = document.getElementById("waPopup");
       if (popup) {
-        // Show after 2 seconds
         setTimeout(() => {
           popup.classList.remove("hidden");
           setTimeout(() => {
@@ -4326,11 +4356,26 @@
           }, 50);
         }, 2000);
       }
+
+      // Large Center Modal popup after 6 seconds (lumayan lama)
+      const centerModal = document.getElementById("waCenterModal");
+      const centerContent = document.getElementById("waCenterContent");
+      if (centerModal && centerContent) {
+        setTimeout(() => {
+          centerModal.style.display = "flex";
+          setTimeout(() => {
+            centerModal.classList.remove("opacity-0");
+            centerModal.classList.add("opacity-100");
+            centerContent.classList.remove("scale-90");
+            centerContent.classList.add("scale-100");
+          }, 50);
+        }, 6000);
+      }
     }
 
     function closeWaPopup(event) {
       if (event) {
-        // Prevent click events from propagating or doing defaults unless expected
+        // Prevent click events from propagating
       }
       const popup = document.getElementById("waPopup");
       const badge = document.getElementById("waBadge");
@@ -4341,6 +4386,20 @@
       }
       if (badge) {
         badge.style.display = "none";
+      }
+    }
+
+    function closeWaCenterModal() {
+      const centerModal = document.getElementById("waCenterModal");
+      const centerContent = document.getElementById("waCenterContent");
+      if (centerModal && centerContent) {
+        centerModal.classList.remove("opacity-100");
+        centerModal.classList.add("opacity-0");
+        centerContent.classList.remove("scale-100");
+        centerContent.classList.add("scale-90");
+        setTimeout(() => {
+          centerModal.style.display = "none";
+        }, 350);
       }
     }
   </script>
