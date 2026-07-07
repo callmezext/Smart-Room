@@ -3141,13 +3141,13 @@ async def rename_music(request: Request):
 async def api_stt_whisper(file: UploadFile = File(...)):
     """Transcribe uploaded audio file using local whisper-cli."""
     WHISPER_BIN = "/app/bin/whisper/whisper-cli"
-    WHISPER_MODEL = "/app/models/ggml-base.bin"
+    WHISPER_MODEL = "/app/models/ggml-tiny.bin"
     WHISPER_LIBS = "/app/bin/whisper"
     
     if not os.path.exists(WHISPER_BIN):
         # Try host path fallback
         WHISPER_BIN = os.path.join(os.path.dirname(__file__), "bin", "whisper", "whisper-cli")
-        WHISPER_MODEL = os.path.join(os.path.dirname(__file__), "models", "ggml-base.bin")
+        WHISPER_MODEL = os.path.join(os.path.dirname(__file__), "models", "ggml-tiny.bin")
         WHISPER_LIBS = os.path.join(os.path.dirname(__file__), "bin", "whisper")
 
     if not os.path.exists(WHISPER_BIN):
@@ -3185,6 +3185,7 @@ async def api_stt_whisper(file: UploadFile = File(...)):
             "--language", "id",
             "--output-txt",
             "--no-prints",
+            "--threads", "2",
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
             env=env
