@@ -603,46 +603,35 @@
       </section>
 
       <!-- SYSTEM SETTINGS TAB (Column 4) -->
-      <section id="section-settings" class="w-full hidden flex flex-col gap-6">
-
-        <!-- OUTPUT AUDIO CARD (inside Settings) -->
-        <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 flex flex-col gap-4 w-full">
-          <div class="flex justify-between items-center border-b border-zinc-800 pb-3">
-            <div class="flex items-center gap-2">
-              <i class="fa-solid fa-sliders text-emerald-400 text-sm"></i>
-              <h2 class="text-sm font-bold text-zinc-200">Output Audio</h2>
-            </div>
-            <button onclick="loadAudioSinks()" class="text-zinc-500 hover:text-zinc-300 text-xs transition-all flex items-center gap-1 active:scale-90">
-              <i class="fa-solid fa-arrows-rotate text-[10px]"></i> Refresh
+            <section id="section-settings" class="w-full hidden flex flex-col gap-6">
+        
+        <!-- Tab Navigation Bar -->
+        <div class="flex flex-wrap gap-2 border-b border-zinc-800 pb-3 justify-between items-center w-full">
+          <div class="flex flex-wrap gap-2">
+            <button onclick="switchSettingsSubTab('asisten')" id="btn-subtab-asisten" class="settings-subtab-btn px-4 py-2 rounded-xl text-xs font-bold transition-all duration-150 flex items-center gap-2 bg-brand-600 text-white">
+              <i class="fa-solid fa-robot text-sm"></i> Asisten
+            </button>
+            <button onclick="switchSettingsSubTab('audio-bt')" id="btn-subtab-audio-bt" class="settings-subtab-btn px-4 py-2 rounded-xl text-xs font-bold transition-all duration-150 flex items-center gap-2 bg-zinc-900 text-zinc-400 hover:text-zinc-200">
+              <i class="fa-solid fa-volume-high text-sm"></i> Audio & BT
+            </button>
+            <button onclick="switchSettingsSubTab('cctv')" id="btn-subtab-cctv" class="settings-subtab-btn px-4 py-2 rounded-xl text-xs font-bold transition-all duration-150 flex items-center gap-2 bg-zinc-900 text-zinc-400 hover:text-zinc-200">
+              <i class="fa-solid fa-video text-sm"></i> CCTV
+            </button>
+            <button onclick="switchSettingsSubTab('wifi-log')" id="btn-subtab-wifi-log" class="settings-subtab-btn px-4 py-2 rounded-xl text-xs font-bold transition-all duration-150 flex items-center gap-2 bg-zinc-900 text-zinc-400 hover:text-zinc-200">
+              <i class="fa-solid fa-wifi text-sm"></i> WiFi & Log
             </button>
           </div>
-          <!-- Device List -->
-          <div id="audioSinkList" class="flex flex-col gap-2">
-            <p class="text-xs text-zinc-600 text-center py-4"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Memuat perangkat...</p>
-          </div>
-          <!-- Auto-Switch Toggle -->
-          <div class="flex justify-between items-center bg-zinc-950/60 border border-zinc-800 rounded-xl p-3 text-xs">
-            <div class="flex flex-col gap-0.5">
-              <span class="font-bold text-zinc-300 flex items-center gap-1.5">
-                <i class="fa-brands fa-bluetooth text-blue-400 text-[11px]"></i>
-                Auto-Switch ke Bluetooth
-              </span>
-              <span class="text-[10px] text-zinc-500">Otomatis pindah ke speaker BT saat tersambung / menyala</span>
-            </div>
-            <label class="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" id="autoSwitchBtToggle" onchange="saveAutoSwitchBt(this.checked)" class="sr-only peer" checked>
-              <div class="w-9 h-5 bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-zinc-300 after:border-zinc-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600 peer-checked:after:bg-white"></div>
-            </label>
-          </div>
+          <button onclick="saveAllSettings()" class="bg-brand-600 hover:bg-brand-500 hover:scale-[1.02] hover:shadow-[0_0_18px_rgba(99,102,241,0.4)] text-white px-5 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 active:scale-[0.98] flex items-center gap-1.5 shadow-md">
+            <i class="fa-solid fa-floppy-disk"></i> Simpan Setelan
+          </button>
         </div>
 
-        <!-- TOP ROW (Settings + Theme) -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full items-start">
-          
-          <!-- LEFT CARD: Preferensi & Pengaturan -->
-          <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 flex flex-col gap-4">
+        <!-- 1. ASISTEN SUB-TAB -->
+        <div id="settings-subtab-asisten" class="settings-subtab-content flex flex-col gap-6 w-full">
+          <!-- CARD: Preferensi & Pengaturan Asisten -->
+          <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 flex flex-col gap-4 max-w-3xl mx-auto w-full">
             <div class="border-b border-zinc-800 pb-3">
-              <h2 class="text-sm font-bold text-zinc-200">Preferensi & Pengaturan</h2>
+              <h2 class="text-sm font-bold text-zinc-200">Preferensi & Pengaturan Asisten</h2>
             </div>
 
             <!-- API Keys -->
@@ -651,7 +640,7 @@
               <div class="flex flex-col gap-1.5" id="apiKeyInputs">
                 <!-- JS populated inputs -->
               </div>
-              <button onclick="addApiKeyField()" class="text-left text-xs font-bold text-brand-400 hover:text-brand-300 mt-1">
+              <button onclick="addApiKeyField()" class="text-left text-xs font-bold text-brand-400 hover:text-brand-300 mt-1 w-max">
                 + Tambah API Key
               </button>
             </div>
@@ -673,7 +662,7 @@
             </div>
 
             <!-- Other configs -->
-            <div class="grid grid-cols-2 gap-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div class="flex flex-col gap-1.5">
                 <label class="text-xs font-semibold text-zinc-400">Model Gemini</label>
                 <select id="activeModelSelect" class="bg-zinc-950 border border-zinc-800 text-zinc-300 rounded-lg text-xs p-2.5 focus:ring-1 focus:ring-brand-500 outline-none">
@@ -733,279 +722,10 @@
                   </div>
                 </div>
               </div>
-            </div>
-            
-            <!-- Save Button -->
-            <button onclick="saveAllSettings()" class="bg-brand-600 hover:bg-brand-500 hover:scale-[1.02] hover:shadow-[0_0_18px_rgba(99,102,241,0.4)] text-white py-2.5 rounded-xl text-xs font-bold transition-all duration-200 mt-3 active:scale-[0.98]">
-              Simpan Pengaturan
-            </button>
-          </div>
-
-          <!-- RIGHT COLUMN: Stack of Theme & Bluetooth Config -->
-          <div class="flex flex-col gap-6">
-            
-            <!-- RIGHT CARD: Tema & CCTV/Alarm Config -->
-            <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 flex flex-col gap-4">
-              <div class="border-b border-zinc-800 pb-3">
-                <h2 class="text-sm font-bold text-zinc-200">Tampilan & Perilaku</h2>
-              </div>
-
-              <!-- Color Theme Selection -->
-              <div class="flex flex-col gap-1.5">
-                <label class="text-xs font-semibold text-zinc-400">🎨 Warna Tema Aplikasi (Color Theme)</label>
-                <div class="grid grid-cols-5 gap-2 mt-1">
-                  <button onclick="setAppTheme('indigo')" class="flex flex-col items-center gap-1 focus:outline-none group">
-                    <div class="w-8 h-8 rounded-full bg-indigo-600 border border-zinc-700 group-hover:scale-105 active:scale-95 transition-all shadow-md flex items-center justify-center cursor-pointer" id="theme-indicator-indigo">
-                      <i class="fa-solid fa-check text-[10px] text-white hidden"></i>
-                    </div>
-                    <span class="text-[10px] text-zinc-500 font-medium">Indigo</span>
-                  </button>
-                  <button onclick="setAppTheme('emerald')" class="flex flex-col items-center gap-1 focus:outline-none group">
-                    <div class="w-8 h-8 rounded-full bg-emerald-600 border border-zinc-700 group-hover:scale-105 active:scale-95 transition-all shadow-md flex items-center justify-center cursor-pointer" id="theme-indicator-emerald">
-                      <i class="fa-solid fa-check text-[10px] text-white hidden"></i>
-                    </div>
-                    <span class="text-[10px] text-zinc-500 font-medium">Emerald</span>
-                  </button>
-                  <button onclick="setAppTheme('blue')" class="flex flex-col items-center gap-1 focus:outline-none group">
-                    <div class="w-8 h-8 rounded-full bg-blue-600 border border-zinc-700 group-hover:scale-105 active:scale-95 transition-all shadow-md flex items-center justify-center cursor-pointer" id="theme-indicator-blue">
-                      <i class="fa-solid fa-check text-[10px] text-white hidden"></i>
-                    </div>
-                    <span class="text-[10px] text-zinc-500 font-medium">Blue</span>
-                  </button>
-                  <button onclick="setAppTheme('amber')" class="flex flex-col items-center gap-1 focus:outline-none group">
-                    <div class="w-8 h-8 rounded-full bg-amber-600 border border-zinc-700 group-hover:scale-105 active:scale-95 transition-all shadow-md flex items-center justify-center cursor-pointer" id="theme-indicator-amber">
-                      <i class="fa-solid fa-check text-[10px] text-white hidden"></i>
-                    </div>
-                    <span class="text-[10px] text-zinc-500 font-medium">Amber</span>
-                  </button>
-                  <button onclick="setAppTheme('rose')" class="flex flex-col items-center gap-1 focus:outline-none group">
-                    <div class="w-8 h-8 rounded-full bg-rose-600 border border-zinc-700 group-hover:scale-105 active:scale-95 transition-all shadow-md flex items-center justify-center cursor-pointer" id="theme-indicator-rose">
-                      <i class="fa-solid fa-check text-[10px] text-white hidden"></i>
-                    </div>
-                    <span class="text-[10px] text-zinc-500 font-medium">Rose</span>
-                  </button>
-                </div>
-              </div>
-
-              <!-- CCTV Auto Refresh Config -->
-              <div class="flex flex-col gap-1.5 border-t border-zinc-800 pt-3">
-                <label class="text-xs font-semibold text-zinc-400">Pembaruan Otomatis CCTV</label>
-                <div class="flex items-center justify-between bg-zinc-950 border border-zinc-850 rounded-xl p-3 text-xs">
-                  <div class="flex items-center gap-2">
-                    <label class="relative inline-flex items-center cursor-pointer">
-                      <input type="checkbox" id="cctvAutoRefreshToggle" onchange="toggleCctvAutoRefresh(this.checked)" class="sr-only peer">
-                      <div class="w-9 h-5 bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-zinc-300 after:border-zinc-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand-600 peer-checked:after:bg-white"></div>
-                    </label>
-                    <span class="font-bold text-zinc-300">Aktifkan</span>
-                  </div>
-                  <div class="flex items-center gap-1.5 ml-auto">
-                    <span class="text-zinc-500 text-[10px]">Setiap:</span>
-                    <select id="cctvRefreshIntervalSelect" onchange="updateCctvRefreshInterval(this.value)" class="bg-zinc-900 border border-zinc-850 text-zinc-300 rounded-lg text-[10px] px-2 py-1 outline-none cursor-pointer focus:ring-1 focus:ring-brand-500 font-semibold">
-                      <option value="5">5 Detik</option>
-                      <option value="10" selected>10 Detik</option>
-                      <option value="15">15 Detik</option>
-                      <option value="30">30 Detik</option>
-                      <option value="60">60 Detik</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-
-              <!-- CCTV Auto Snapshot Config -->
-              <div class="flex flex-col gap-1.5 border-t border-zinc-800 pt-3">
-                <label class="text-xs font-semibold text-zinc-400">Potret Otomatis CCTV (Snapshot)</label>
-                <div class="flex items-center justify-between bg-zinc-950 border border-zinc-850 rounded-xl p-3 text-xs">
-                  <div class="flex items-center gap-2">
-                    <label class="relative inline-flex items-center cursor-pointer">
-                      <input type="checkbox" id="cctvSnapshotToggle" class="sr-only peer">
-                      <div class="w-9 h-5 bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-zinc-300 after:border-zinc-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand-600 peer-checked:after:bg-white"></div>
-                    </label>
-                    <span class="font-bold text-zinc-300">Aktifkan</span>
-                  </div>
-                  <div class="flex items-center gap-1.5 ml-auto">
-                    <span class="text-zinc-500 text-[10px]">Setiap:</span>
-                    <select id="cctvSnapshotIntervalSelect" class="bg-zinc-900 border border-zinc-850 text-zinc-300 rounded-lg text-[10px] px-2 py-1 outline-none cursor-pointer focus:ring-1 focus:ring-brand-500 font-semibold">
-                      <option value="5">5 Menit</option>
-                      <option value="10" selected>10 Menit</option>
-                      <option value="15">15 Menit</option>
-                      <option value="30">30 Menit</option>
-                      <option value="60">60 Menit</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-
-              <!-- CCTV Motion Detection Config -->
-              <div class="flex flex-col gap-1.5 border-t border-zinc-800 pt-3">
-                <label class="text-xs font-semibold text-zinc-400">🚨 Deteksi Gerakan Otomatis (Saat Pergi)</label>
-                <div class="flex items-center justify-between bg-zinc-950 border border-zinc-850 rounded-xl p-3 text-xs">
-                  <div class="flex flex-col gap-0.5">
-                    <span class="font-bold text-zinc-300">Aktifkan Deteksi Gerakan</span>
-                    <span class="text-[10px] text-zinc-500">Mata-matai gerakan hanya ketika Anda tidak di kamar.</span>
-                  </div>
-                  <label class="relative inline-flex items-center cursor-pointer shrink-0">
-                    <input type="checkbox" id="cctvMotionToggle" class="sr-only peer">
-                    <div class="w-9 h-5 bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-zinc-300 after:border-zinc-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand-600 peer-checked:after:bg-white"></div>
-                  </label>
-                </div>
-
-                <!-- Baseline Camera Setup -->
-                <div class="flex flex-col gap-1.5 mt-2 bg-zinc-950 border border-zinc-850 rounded-xl p-3 text-xs">
-                  <div class="flex items-center justify-between">
-                    <span class="font-bold text-zinc-300">Foto Kamar Kosong (Acuan/Baseline)</span>
-                    <button onclick="takeBaselineSnapshot()" id="baselineBtn" class="bg-zinc-800 hover:bg-zinc-700 hover:text-white text-zinc-300 font-semibold px-2.5 py-1.5 rounded-lg text-[10px] transition-all flex items-center gap-1 active:scale-[0.98]">
-                      <i class="fa-solid fa-camera"></i> Ambil Foto Acuan
-                    </button>
-                  </div>
-                  <p class="text-[10px] text-zinc-500 leading-tight">Gunakan saat kamar benar-benar kosong dan pencahayaan normal. Sistem akan menggunakan foto ini sebagai acuan deteksi gerakan. Kosongkan jika ingin menggunakan acuan dinamis otomatis.</p>
-                  
-                  <div class="relative mt-2 border border-zinc-850 rounded-lg overflow-hidden bg-zinc-900 aspect-video flex items-center justify-center hidden" id="baselinePreviewContainer">
-                    <img id="baselinePreviewImg" src="" class="w-full h-full object-cover">
-                    <button onclick="deleteBaselineSnapshot()" class="absolute top-2 right-2 bg-red-950/80 hover:bg-red-900 border border-red-800/50 text-red-200 p-1.5 rounded-lg text-[10px] transition-all hover:scale-105" title="Hapus foto acuan">
-                      <i class="fa-solid fa-trash"></i>
-                    </button>
-                  </div>
-                  <span id="noBaselineText" class="text-[10px] text-amber-500 italic mt-1"><i class="fa-solid fa-circle-info mr-1"></i> Belum ada foto acuan kamar kosong (saat ini menggunakan deteksi acuan dinamis otomatis).</span>
-                </div>
-              </div>
-
-              <!-- CCTV FPS Dynamic Configuration -->
-              <div class="flex flex-col gap-1.5 border-t border-zinc-800 pt-3">
-                <label class="text-xs font-semibold text-zinc-400">⏱️ Kecepatan Frame (FPS CCTV Dinamis)</label>
-                <div class="flex flex-col gap-2 bg-zinc-950 border border-zinc-850 rounded-xl p-3 text-xs">
-                  <div class="flex items-center justify-between gap-2">
-                    <span class="text-zinc-400 text-[10px]">FPS Siang Hari (4 Pagi - 12 Malam):</span>
-                    <input type="number" id="cctvFpsDayInput" min="1" max="30" class="w-16 bg-zinc-900 border border-zinc-850 text-zinc-300 rounded-lg px-2 py-1 outline-none text-right" placeholder="24">
-                  </div>
-                  <div class="flex items-center justify-between gap-2">
-                    <span class="text-zinc-400 text-[10px]">FPS Malam Hari (12 Malam - 4 Pagi):</span>
-                    <input type="number" id="cctvFpsNightInput" min="1" max="30" class="w-16 bg-zinc-900 border border-zinc-850 text-zinc-300 rounded-lg px-2 py-1 outline-none text-right" placeholder="10">
-                  </div>
-                  <div class="flex items-center justify-between gap-2">
-                    <span class="text-zinc-400 text-[10px]">Jam Mulai Mode Malam (0-23):</span>
-                    <input type="number" id="cctvFpsNightStartInput" min="0" max="23" class="w-16 bg-zinc-900 border border-zinc-850 text-zinc-300 rounded-lg px-2 py-1 outline-none text-right" placeholder="0">
-                  </div>
-                  <div class="flex items-center justify-between gap-2">
-                    <span class="text-zinc-400 text-[10px]">Jam Selesai Mode Malam (0-23):</span>
-                    <input type="number" id="cctvFpsNightEndInput" min="0" max="23" class="w-16 bg-zinc-900 border border-zinc-850 text-zinc-300 rounded-lg px-2 py-1 outline-none text-right" placeholder="4">
-                  </div>
-                  <p class="text-[10px] text-zinc-500 leading-tight mt-1">Mengurangi FPS saat tidur membantu menghemat CPU & bandwidth.</p>
-                </div>
-              </div>
-
-              <!-- CCTV Camera Closing behavior -->
-
-              <div class="flex flex-col gap-1.5 border-t border-zinc-800 pt-3">
-                <label class="text-xs font-semibold text-zinc-400">📹 Perilaku Kamera CCTV</label>
-                <div class="flex items-center justify-between bg-zinc-950 border border-zinc-850 rounded-xl p-3 text-xs">
-                  <div class="flex flex-col gap-0.5">
-                    <span class="font-bold text-zinc-300">Matikan Kamera saat Web Ditutup</span>
-                    <span class="text-[10px] text-zinc-500">Kamera otomatis nonaktif jika browser ditutup. Matikan ini agar kamera tetap menyala.</span>
-                  </div>
-                  <label class="relative inline-flex items-center cursor-pointer shrink-0">
-                    <input type="checkbox" id="cameraAutoOffToggle" class="sr-only peer">
-                    <div class="w-9 h-5 bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-zinc-300 after:border-zinc-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand-600 peer-checked:after:bg-white"></div>
-                  </label>
-                </div>
-              </div>
-
-              <!-- Immich Sync Settings -->
-              <div class="flex flex-col gap-1.5 border-t border-zinc-800 pt-3">
-                <label class="text-xs font-semibold text-zinc-400">🖼️ Sinkronisasi Immich</label>
-                
-                <div class="flex items-center justify-between bg-zinc-950 border border-zinc-850 rounded-xl p-3 text-xs">
-                  <div class="flex flex-col gap-0.5">
-                    <span class="font-bold text-zinc-300">Sinkronisasi CCTV ke Immich</span>
-                    <span class="text-[10px] text-zinc-500">Kirim foto & rekaman video CCTV otomatis ke Immich.</span>
-                  </div>
-                  <label class="relative inline-flex items-center cursor-pointer shrink-0">
-                    <input type="checkbox" id="immichSyncToggle" class="sr-only peer">
-                    <div class="w-9 h-5 bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-zinc-300 after:border-zinc-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand-600 peer-checked:after:bg-white"></div>
-                  </label>
-                </div>
-
-                <div class="flex flex-col gap-1.5 mt-1">
-                  <label class="text-[10px] font-semibold text-zinc-500">API Key Immich</label>
-                  <input type="password" id="immichApiKeyInput" class="bg-zinc-950 border border-zinc-850 text-zinc-300 rounded-xl text-xs px-3 py-2 outline-none focus:ring-1 focus:ring-brand-500 font-mono w-full" placeholder="Masukkan API Key/Token Immich">
-                </div>
-
-                <div class="flex flex-col gap-1.5 mt-1">
-                  <label class="text-[10px] font-semibold text-zinc-500">Alamat Immich Server</label>
-                  <input type="text" id="immichAddressInput" class="bg-zinc-950 border border-zinc-850 text-zinc-300 rounded-xl text-xs px-3 py-2 outline-none focus:ring-1 focus:ring-brand-500 w-full" placeholder="http://127.0.0.1:2283">
-                </div>
-              </div>
-
-              <!-- Wi-Fi Sensing Presence Settings -->
-              <div class="flex flex-col gap-1.5 border-t border-zinc-800 pt-3">
-                <label class="text-xs font-semibold text-zinc-400">📶 Pendeteksi Kehadiran (Presence Detection)</label>
-                
-                <div class="flex items-center justify-between bg-zinc-950 border border-zinc-850 rounded-xl p-3 text-xs">
-                  <div class="flex flex-col gap-0.5">
-                    <span class="font-bold text-zinc-300">Aktifkan Pendeteksi Kehadiran</span>
-                    <span class="text-[10px] text-zinc-500">Zex menyambut Anda otomatis berdasarkan koneksi Wi-Fi/Ping atau kamera.</span>
-                  </div>
-                  <label class="relative inline-flex items-center cursor-pointer shrink-0">
-                    <input type="checkbox" id="wifiSensingToggle" class="sr-only peer">
-                    <div class="w-9 h-5 bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-zinc-300 after:border-zinc-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand-600 peer-checked:after:bg-white"></div>
-                  </label>
-                </div>
-
-                <div class="flex flex-col gap-1.5 mt-1">
-                  <label class="text-[10px] font-semibold text-zinc-500">Metode Deteksi</label>
-                  <select id="wifiSensingMethodSelect" class="bg-zinc-950 border border-zinc-850 text-zinc-300 rounded-xl text-xs px-3 py-2 outline-none focus:ring-1 focus:ring-brand-500 w-full" onchange="toggleSensingFields()">
-                    <option value="ping">Metode 2: Ping/ARP Jitter (Disarankan, Tanpa Disconnect)</option>
-                    <option value="sniff">Metode 1: Sniffing Probe Request (Butuh Mode Monitor)</option>
-                    <option value="camera">Metode 3: Kamera / CCTV Saja (Deteksi Perubahan Frame)</option>
-                  </select>
-                </div>
-
-                <!-- Camera Presence Custom Parameters -->
-                <div class="flex flex-col gap-2 mt-2 bg-zinc-950 border border-zinc-850 rounded-xl p-3 text-xs hidden" id="cameraPresenceConfigGroup">
-                  <span class="font-bold text-zinc-300">Pengaturan Durasi Deteksi Kamera</span>
-                  <p class="text-[10px] text-zinc-500 leading-tight mb-1">Sesuaikan aturan durasi hening dan sapaan saat deteksi kamera aktif.</p>
-                  
-                  <div class="flex items-center justify-between gap-2">
-                    <span class="text-zinc-400 text-[10px]">Min Kamar Hening (Menit):</span>
-                    <input type="number" id="presenceStillnessMinInput" step="0.1" min="0.1" class="w-20 bg-zinc-900 border border-zinc-850 text-zinc-300 rounded-lg px-2 py-1 outline-none text-right" placeholder="3.0">
-                  </div>
-                  
-                  <div class="flex items-center justify-between gap-2">
-                    <span class="text-zinc-400 text-[10px]">Batas Singkat (Menit):</span>
-                    <input type="number" id="presenceShortMinInput" min="1" class="w-20 bg-zinc-900 border border-zinc-850 text-zinc-300 rounded-lg px-2 py-1 outline-none text-right" placeholder="15">
-                  </div>
-
-                  <div class="flex items-center justify-between gap-2">
-                    <span class="text-zinc-400 text-[10px]">Batas Sedang (Menit):</span>
-                    <input type="number" id="presenceMediumMinInput" min="1" class="w-20 bg-zinc-900 border border-zinc-850 text-zinc-300 rounded-lg px-2 py-1 outline-none text-right" placeholder="60">
-                  </div>
-
-                  <div class="flex items-center justify-between gap-2">
-                    <span class="text-zinc-400 text-[10px]">Batas Lama (Menit):</span>
-                    <input type="number" id="presenceLongMinInput" min="1" class="w-20 bg-zinc-900 border border-zinc-850 text-zinc-300 rounded-lg px-2 py-1 outline-none text-right" placeholder="120">
-                  </div>
-                </div>
-
-
-
-                <div class="flex flex-col gap-1.5 mt-1" id="sensingIpGroup">
-                  <label class="text-[10px] font-semibold text-zinc-500">IP Target Ponsel (Metode Ping)</label>
-                  <input type="text" id="wifiSensingIpInput" class="bg-zinc-950 border border-zinc-850 text-zinc-300 rounded-xl text-xs px-3 py-2 outline-none focus:ring-1 focus:ring-brand-500 w-full" placeholder="Contoh: 192.168.1.50">
-                </div>
-
-                <div class="flex flex-col gap-1.5 mt-1 hidden" id="sensingMacGroup">
-                  <label class="text-[10px] font-semibold text-zinc-500">MAC Address Target (Metode Sniffing)</label>
-                  <input type="text" id="wifiSensingMacInput" class="bg-zinc-950 border border-zinc-850 text-zinc-300 rounded-xl text-xs px-3 py-2 outline-none focus:ring-1 focus:ring-brand-500 font-mono w-full" placeholder="Contoh: AA:BB:CC:DD:EE:FF">
-                  <span class="text-[9px] text-amber-500 leading-tight mt-0.5"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Peringatan: Metode Sniffing akan memutuskan koneksi Wi-Fi server utama jika server tidak menggunakan kabel LAN.</span>
-                </div>
-              </div>
-
-
-
 
               <!-- Alarm Briefing Config -->
-              <div class="flex flex-col gap-1.5 border-t border-zinc-800 pt-3">
-                <label class="text-xs font-semibold text-zinc-400">Briefing Alarm Pagi</label>
-                <div class="flex items-center justify-between bg-zinc-950 border border-zinc-850 rounded-xl p-3 text-xs">
+              <div class="col-span-full border-t border-zinc-800/80 pt-3 mt-1 flex flex-col gap-3">
+                <div class="flex justify-between items-center bg-zinc-950/60 border border-zinc-800 rounded-xl p-3 text-xs">
                   <div class="flex flex-col gap-0.5">
                     <span class="font-bold text-zinc-300">Laporan Suara Pagi (Briefing Alarm)</span>
                     <span class="text-[10px] text-zinc-500">Zex membacakan jadwal & info saat alarm berbunyi.</span>
@@ -1017,119 +737,431 @@
                 </div>
               </div>
 
-              <!-- Bluetooth Speaker Keepalive BIP -->
-              <div class="flex flex-col gap-1.5 border-t border-zinc-800 pt-3">
-                <label class="text-xs font-semibold text-zinc-400">🔊 Keepalive Bip Speaker Bluetooth</label>
-                <div class="flex items-center justify-between bg-zinc-955 border border-zinc-850 rounded-xl p-3 text-xs">
-                  <div class="flex flex-col gap-0.5">
-                    <span class="font-bold text-zinc-300">Interval Bip Anti-Sleep</span>
-                    <span class="text-[10px] text-zinc-500">Putar bunyi tak-terdengar agar speaker BT tidak mati.</span>
-                  </div>
-                  <div class="flex items-center gap-1.5 ml-auto shrink-0">
-                    <span class="text-zinc-500 text-[10px]">Setiap:</span>
-                    <select id="keepaliveIntervalSelect" class="bg-zinc-900 border border-zinc-850 text-zinc-300 rounded-lg text-[10px] px-2 py-1 outline-none cursor-pointer focus:ring-1 focus:ring-brand-500 font-semibold">
-                      <option value="0">Nonaktif</option>
-                      <option value="5">5 Menit</option>
-                      <option value="10">10 Menit</option>
-                      <option value="15">15 Menit</option>
-                      <option value="30">30 Menit</option>
-                    </select>
-                  </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. AUDIO & BT SUB-TAB -->
+        <div id="settings-subtab-audio-bt" class="settings-subtab-content flex flex-col gap-6 w-full hidden">
+          <!-- CARD: Output Audio -->
+          <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 flex flex-col gap-4 max-w-3xl mx-auto w-full">
+            <div class="flex justify-between items-center border-b border-zinc-800 pb-3">
+              <div class="flex items-center gap-2">
+                <i class="fa-solid fa-sliders text-emerald-400 text-sm"></i>
+                <h2 class="text-sm font-bold text-zinc-200">Output Audio</h2>
+              </div>
+              <button onclick="loadAudioSinks()" class="text-zinc-500 hover:text-zinc-300 text-xs transition-all flex items-center gap-1 active:scale-90">
+                <i class="fa-solid fa-arrows-rotate text-[10px]"></i> Refresh
+              </button>
+            </div>
+            <!-- Device List -->
+            <div id="audioSinkList" class="flex flex-col gap-2">
+              <p class="text-xs text-zinc-600 text-center py-4"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Memuat perangkat...</p>
+            </div>
+            <!-- Auto-Switch Toggle -->
+            <div class="flex justify-between items-center bg-zinc-950/60 border border-zinc-800 rounded-xl p-3 text-xs">
+              <div class="flex flex-col gap-0.5">
+                <span class="font-bold text-zinc-300 flex items-center gap-1.5">
+                  <i class="fa-brands fa-bluetooth text-blue-400 text-[11px]"></i>
+                  Auto-Switch ke Bluetooth
+                </span>
+                <span class="text-[10px] text-zinc-500">Otomatis pindah ke speaker BT saat tersambung / menyala</span>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="autoSwitchBtToggle" onchange="saveAutoSwitchBt(this.checked)" class="sr-only peer" checked>
+                <div class="w-9 h-5 bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-zinc-300 after:border-zinc-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600 peer-checked:after:bg-white"></div>
+              </label>
+            </div>
+
+            <!-- Keepalive Bip Config -->
+            <div class="flex flex-col gap-1.5 border-t border-zinc-800/80 pt-4">
+              <label class="text-xs font-semibold text-zinc-400">🔊 Keepalive Bip Speaker Bluetooth</label>
+              <div class="flex items-center justify-between bg-zinc-950 border border-zinc-850 rounded-xl p-3 text-xs">
+                <div class="flex flex-col gap-0.5">
+                  <span class="font-bold text-zinc-300">Interval Bip Anti-Sleep</span>
+                  <span class="text-[10px] text-zinc-500">Putar bunyi tak-terdengar agar speaker BT tidak mati.</span>
+                </div>
+                <div class="flex items-center gap-1.5 ml-auto shrink-0">
+                  <span class="text-zinc-500 text-[10px]">Setiap:</span>
+                  <select id="keepaliveIntervalSelect" class="bg-zinc-900 border border-zinc-850 text-zinc-300 rounded-lg text-[10px] px-2 py-1 outline-none cursor-pointer focus:ring-1 focus:ring-brand-500 font-semibold">
+                    <option value="0">Nonaktif</option>
+                    <option value="5">5 Menit</option>
+                    <option value="10">10 Menit</option>
+                    <option value="15">15 Menit</option>
+                    <option value="30">30 Menit</option>
+                  </select>
                 </div>
               </div>
             </div>
 
-            <!-- BLUETOOTH MANAGER CARD -->
-            <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 flex flex-col gap-4">
-              <div class="flex justify-between items-center border-b border-zinc-800 pb-3">
-                <div class="flex items-center gap-2">
-                  <i class="fa-solid fa-bluetooth text-blue-400 text-sm"></i>
-                  <h2 class="text-sm font-bold text-zinc-200">Koneksi Bluetooth</h2>
-                </div>
-                <button onclick="scanBluetooth()" id="scanBtBtn" class="bg-blue-600 hover:bg-blue-500 hover:scale-105 hover:shadow-[0_0_12px_rgba(59,130,246,0.5)] text-white px-3 py-1 rounded-lg text-xs font-bold transition-all duration-200 flex items-center gap-1 active:scale-95">
-                  <i class="fa-solid fa-magnifying-glass text-[10px]"></i> Scan
-                </button>
-              </div>
+          </div>
 
-              <!-- BT Controller Status -->
-              <div class="flex justify-between items-center bg-zinc-950 rounded-xl p-3 border border-zinc-800">
-                <div class="flex flex-col gap-0.5">
-                  <span id="btAdapterName" class="text-xs font-bold text-zinc-300">Bluetooth Adapter</span>
-                  <span id="btAdapterStatus" class="text-[10px] text-zinc-500">Mencari status...</span>
-                </div>
+          <!-- CARD: Koneksi Bluetooth -->
+          <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 flex flex-col gap-4 max-w-3xl mx-auto w-full">
+            <div class="flex justify-between items-center border-b border-zinc-800 pb-3">
+              <div class="flex items-center gap-2">
+                <i class="fa-solid fa-bluetooth text-blue-400 text-sm"></i>
+                <h2 class="text-sm font-bold text-zinc-200">Koneksi Bluetooth</h2>
+              </div>
+              <button onclick="scanBluetooth()" id="scanBtBtn" class="bg-blue-600 hover:bg-blue-500 hover:scale-105 hover:shadow-[0_0_12px_rgba(59,130,246,0.5)] text-white px-3 py-1 rounded-lg text-xs font-bold transition-all duration-200 flex items-center gap-1 active:scale-95">
+                <i class="fa-solid fa-magnifying-glass text-[10px]"></i> Scan
+              </button>
+            </div>
+
+            <!-- BT Controller Status -->
+            <div class="flex justify-between items-center bg-zinc-950 rounded-xl p-3 border border-zinc-800">
+              <div class="flex flex-col gap-0.5">
+                <span id="btAdapterName" class="text-xs font-bold text-zinc-300">Bluetooth Adapter</span>
+                <span id="btAdapterStatus" class="text-[10px] text-zinc-500">Mencari status...</span>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="btPowerSwitch" onchange="toggleBtPower(this)" class="sr-only peer">
+                <div class="w-9 h-5 bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-zinc-300 after:border-zinc-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600 peer-checked:after:bg-white"></div>
+              </label>
+            </div>
+
+            <!-- Auto Reconnect Setting -->
+            <div class="bg-zinc-955 border border-zinc-800 rounded-xl p-3 flex flex-col gap-2">
+              <div class="flex justify-between items-center">
+                <span class="text-xs font-bold text-zinc-300">Auto-Reconnect Speaker</span>
                 <label class="relative inline-flex items-center cursor-pointer">
-                  <input type="checkbox" id="btPowerSwitch" onchange="toggleBtPower(this)" class="sr-only peer">
+                  <input type="checkbox" id="autoConnectToggle" onchange="updateAutoConnect()" class="sr-only peer">
                   <div class="w-9 h-5 bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-zinc-300 after:border-zinc-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600 peer-checked:after:bg-white"></div>
                 </label>
               </div>
+              <select id="autoConnectSelect" onchange="updateAutoConnect()" class="bg-zinc-900 border border-zinc-800 text-zinc-300 rounded-lg text-xs p-2 focus:ring-1 focus:ring-blue-500 outline-none w-full">
+                <option value="">-- Pilih Speaker --</option>
+              </select>
+            </div>
 
-              <!-- Auto Reconnect Setting -->
-              <div class="bg-zinc-950 border border-zinc-800 rounded-xl p-3 flex flex-col gap-2">
-                <div class="flex justify-between items-center">
-                  <span class="text-xs font-bold text-zinc-300">Auto-Reconnect Speaker</span>
+            <!-- Discovered Devices List -->
+            <div class="flex flex-col gap-2">
+              <span class="text-xs font-semibold text-zinc-400">Perangkat Bluetooth</span>
+              <div id="btDevicesList" class="flex flex-col gap-2 max-h-48 overflow-y-auto pr-1">
+                <!-- JS Populated -->
+                <p class="text-xs text-zinc-600 text-center py-4">Klik scan untuk memindai perangkat</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. CCTV SUB-TAB -->
+        <div id="settings-subtab-cctv" class="settings-subtab-content flex flex-col gap-6 w-full hidden">
+          <!-- CARD: Pengaturan Tampilan & Kamera -->
+          <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 flex flex-col gap-4 max-w-3xl mx-auto w-full">
+            <div class="border-b border-zinc-800 pb-3 flex justify-between items-center">
+              <h2 class="text-sm font-bold text-zinc-200">Tampilan & CCTV</h2>
+            </div>
+
+            <!-- Color Theme Selection -->
+            <div class="flex flex-col gap-1.5 pb-3">
+              <label class="text-xs font-semibold text-zinc-400">🎨 Warna Tema Aplikasi (Color Theme)</label>
+              <div class="grid grid-cols-5 gap-2 mt-1">
+                <button onclick="setAppTheme('indigo')" class="flex flex-col items-center gap-1 focus:outline-none group">
+                  <div class="w-8 h-8 rounded-full bg-indigo-600 border border-zinc-700 group-hover:scale-105 active:scale-95 transition-all shadow-md flex items-center justify-center cursor-pointer" id="theme-indicator-indigo">
+                    <i class="fa-solid fa-check text-[10px] text-white hidden"></i>
+                  </div>
+                  <span class="text-[10px] text-zinc-500 font-medium">Indigo</span>
+                </button>
+                <button onclick="setAppTheme('emerald')" class="flex flex-col items-center gap-1 focus:outline-none group">
+                  <div class="w-8 h-8 rounded-full bg-emerald-600 border border-zinc-700 group-hover:scale-105 active:scale-95 transition-all shadow-md flex items-center justify-center cursor-pointer" id="theme-indicator-emerald">
+                    <i class="fa-solid fa-check text-[10px] text-white hidden"></i>
+                  </div>
+                  <span class="text-[10px] text-zinc-500 font-medium">Emerald</span>
+                </button>
+                <button onclick="setAppTheme('blue')" class="flex flex-col items-center gap-1 focus:outline-none group">
+                  <div class="w-8 h-8 rounded-full bg-blue-600 border border-zinc-700 group-hover:scale-105 active:scale-95 transition-all shadow-md flex items-center justify-center cursor-pointer" id="theme-indicator-blue">
+                    <i class="fa-solid fa-check text-[10px] text-white hidden"></i>
+                  </div>
+                  <span class="text-[10px] text-zinc-500 font-medium">Blue</span>
+                </button>
+                <button onclick="setAppTheme('amber')" class="flex flex-col items-center gap-1 focus:outline-none group">
+                  <div class="w-8 h-8 rounded-full bg-amber-600 border border-zinc-700 group-hover:scale-105 active:scale-95 transition-all shadow-md flex items-center justify-center cursor-pointer" id="theme-indicator-amber">
+                    <i class="fa-solid fa-check text-[10px] text-white hidden"></i>
+                  </div>
+                  <span class="text-[10px] text-zinc-500 font-medium">Amber</span>
+                </button>
+                <button onclick="setAppTheme('rose')" class="flex flex-col items-center gap-1 focus:outline-none group">
+                  <div class="w-8 h-8 rounded-full bg-rose-600 border border-zinc-700 group-hover:scale-105 active:scale-95 transition-all shadow-md flex items-center justify-center cursor-pointer" id="theme-indicator-rose">
+                    <i class="fa-solid fa-check text-[10px] text-white hidden"></i>
+                  </div>
+                  <span class="text-[10px] text-zinc-500 font-medium">Rose</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- CCTV Auto Refresh Config -->
+            <div class="flex flex-col gap-1.5 border-t border-zinc-800 pt-3">
+              <label class="text-xs font-semibold text-zinc-400">Pembaruan Otomatis CCTV</label>
+              <div class="flex items-center justify-between bg-zinc-950 border border-zinc-850 rounded-xl p-3 text-xs">
+                <div class="flex items-center gap-2">
                   <label class="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" id="autoConnectToggle" onchange="updateAutoConnect()" class="sr-only peer">
-                    <div class="w-9 h-5 bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-zinc-300 after:border-zinc-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600 peer-checked:after:bg-white"></div>
+                    <input type="checkbox" id="cctvAutoRefreshToggle" onchange="toggleCctvAutoRefresh(this.checked)" class="sr-only peer">
+                    <div class="w-9 h-5 bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-zinc-300 after:border-zinc-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand-600 peer-checked:after:bg-white"></div>
                   </label>
+                  <span class="font-bold text-zinc-300">Aktifkan</span>
                 </div>
-                <select id="autoConnectSelect" onchange="updateAutoConnect()" class="bg-zinc-900 border border-zinc-800 text-zinc-300 rounded-lg text-xs p-2 focus:ring-1 focus:ring-blue-500 outline-none w-full">
-                  <option value="">-- Pilih Speaker --</option>
+                <div class="flex items-center gap-1.5 ml-auto font-semibold">
+                  <span class="text-zinc-500 text-[10px]">Setiap:</span>
+                  <select id="cctvRefreshIntervalSelect" onchange="updateCctvRefreshInterval(this.value)" class="bg-zinc-900 border border-zinc-850 text-zinc-300 rounded-lg text-[10px] px-2 py-1 outline-none cursor-pointer focus:ring-1 focus:ring-brand-500">
+                    <option value="5">5 Detik</option>
+                    <option value="10" selected>10 Detik</option>
+                    <option value="15">15 Detik</option>
+                    <option value="30">30 Detik</option>
+                    <option value="60">60 Detik</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- CCTV Auto Snapshot Config -->
+            <div class="flex flex-col gap-1.5 border-t border-zinc-800 pt-3">
+              <label class="text-xs font-semibold text-zinc-400">Potret Otomatis CCTV (Snapshot)</label>
+              <div class="flex items-center justify-between bg-zinc-950 border border-zinc-850 rounded-xl p-3 text-xs">
+                <div class="flex items-center gap-2">
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" id="cctvSnapshotToggle" class="sr-only peer">
+                    <div class="w-9 h-5 bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-zinc-300 after:border-zinc-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand-600 peer-checked:after:bg-white"></div>
+                  </label>
+                  <span class="font-bold text-zinc-300">Aktifkan</span>
+                </div>
+                <div class="flex items-center gap-1.5 ml-auto font-semibold">
+                  <span class="text-zinc-500 text-[10px]">Setiap:</span>
+                  <select id="cctvSnapshotIntervalSelect" class="bg-zinc-900 border border-zinc-850 text-zinc-300 rounded-lg text-[10px] px-2 py-1 outline-none cursor-pointer focus:ring-1 focus:ring-brand-500">
+                    <option value="5">5 Menit</option>
+                    <option value="10" selected>10 Menit</option>
+                    <option value="15">15 Menit</option>
+                    <option value="30">30 Menit</option>
+                    <option value="60">60 Menit</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- CCTV Motion Detection Config -->
+            <div class="flex flex-col gap-1.5 border-t border-zinc-800 pt-3">
+              <label class="text-xs font-semibold text-zinc-400">🚨 Deteksi Gerakan Otomatis (Saat Pergi)</label>
+              <div class="flex items-center justify-between bg-zinc-955 border border-zinc-855 rounded-xl p-3 text-xs">
+                <div class="flex flex-col gap-0.5">
+                  <span class="font-bold text-zinc-300">Aktifkan Deteksi Gerakan</span>
+                  <span class="text-[10px] text-zinc-500">Mata-matai gerakan hanya ketika Anda tidak di kamar.</span>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer shrink-0">
+                  <input type="checkbox" id="cctvMotionToggle" class="sr-only peer">
+                  <div class="w-9 h-5 bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-zinc-300 after:border-zinc-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand-600 peer-checked:after:bg-white"></div>
+                </label>
+              </div>
+
+              <!-- Baseline Camera Setup -->
+              <div class="flex flex-col gap-1.5 mt-2 bg-zinc-950 border border-zinc-850 rounded-xl p-3 text-xs">
+                <div class="flex items-center justify-between">
+                  <span class="font-bold text-zinc-300">Foto Kamar Kosong (Acuan/Baseline)</span>
+                  <button onclick="takeBaselineSnapshot()" id="baselineBtn" class="bg-zinc-800 hover:bg-zinc-700 hover:text-white text-zinc-300 font-semibold px-2.5 py-1.5 rounded-lg text-[10px] transition-all flex items-center gap-1 active:scale-[0.98]">
+                    <i class="fa-solid fa-camera"></i> Ambil Foto Acuan
+                  </button>
+                </div>
+                <p class="text-[10px] text-zinc-500 leading-tight">Gunakan saat kamar benar-benar kosong dan pencahayaan normal. Sistem akan menggunakan foto ini sebagai acuan deteksi gerakan.</p>
+                
+                <div class="relative mt-2 border border-zinc-850 rounded-lg overflow-hidden bg-zinc-900 aspect-video flex items-center justify-center hidden" id="baselinePreviewContainer">
+                  <img id="baselinePreviewImg" src="" class="w-full h-full object-cover">
+                  <button onclick="deleteBaselineSnapshot()" class="absolute top-2 right-2 bg-red-950/80 hover:bg-red-900 border border-red-800/50 text-red-200 p-1.5 rounded-lg text-[10px] transition-all hover:scale-105" title="Hapus foto acuan">
+                    <i class="fa-solid fa-trash"></i>
+                  </button>
+                </div>
+                <span id="noBaselineText" class="text-[10px] text-amber-500 italic mt-1"><i class="fa-solid fa-circle-info mr-1"></i> Belum ada foto acuan kamar kosong (saat ini menggunakan deteksi acuan dinamis otomatis).</span>
+              </div>
+            </div>
+
+            <!-- CCTV FPS Dynamic Configuration -->
+            <div class="flex flex-col gap-1.5 border-t border-zinc-800 pt-3">
+              <label class="text-xs font-semibold text-zinc-400">⏱️ Kecepatan Frame (FPS CCTV Dinamis)</label>
+              <div class="flex flex-col gap-2 bg-zinc-955 border border-zinc-855 rounded-xl p-3 text-xs">
+                <div class="flex items-center justify-between gap-2">
+                  <span class="text-zinc-400 text-[10px]">FPS Siang Hari (4 Pagi - 12 Malam):</span>
+                  <input type="number" id="cctvFpsDayInput" min="1" max="30" class="w-16 bg-zinc-900 border border-zinc-850 text-zinc-300 rounded-lg px-2 py-1 outline-none text-right" placeholder="24">
+                </div>
+                <div class="flex items-center justify-between gap-2">
+                  <span class="text-zinc-400 text-[10px]">FPS Malam Hari (12 Malam - 4 Pagi):</span>
+                  <input type="number" id="cctvFpsNightInput" min="1" max="30" class="w-16 bg-zinc-900 border border-zinc-850 text-zinc-300 rounded-lg px-2 py-1 outline-none text-right" placeholder="10">
+                </div>
+                <div class="flex items-center justify-between gap-2">
+                  <span class="text-zinc-400 text-[10px]">Jam Mulai Mode Malam (0-23):</span>
+                  <input type="number" id="cctvFpsNightStartInput" min="0" max="23" class="w-16 bg-zinc-900 border border-zinc-850 text-zinc-300 rounded-lg px-2 py-1 outline-none text-right" placeholder="0">
+                </div>
+                <div class="flex items-center justify-between gap-2">
+                  <span class="text-zinc-400 text-[10px]">Jam Selesai Mode Malam (0-23):</span>
+                  <input type="number" id="cctvFpsNightEndInput" min="0" max="23" class="w-16 bg-zinc-900 border border-zinc-850 text-zinc-300 rounded-lg px-2 py-1 outline-none text-right" placeholder="4">
+                </div>
+                <p class="text-[10px] text-zinc-500 leading-tight mt-1">Mengurangi FPS saat tidur membantu menghemat CPU & bandwidth.</p>
+              </div>
+            </div>
+
+            <!-- CCTV Camera Closing behavior -->
+            <div class="flex flex-col gap-1.5 border-t border-zinc-800 pt-3">
+              <label class="text-xs font-semibold text-zinc-400">📹 Perilaku Kamera CCTV</label>
+              <div class="flex items-center justify-between bg-zinc-950 border border-zinc-850 rounded-xl p-3 text-xs">
+                <div class="flex flex-col gap-0.5">
+                  <span class="font-bold text-zinc-300">Matikan Kamera saat Web Ditutup</span>
+                  <span class="text-[10px] text-zinc-500">Kamera otomatis nonaktif jika browser ditutup. Matikan ini agar kamera tetap menyala.</span>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer shrink-0">
+                  <input type="checkbox" id="cameraAutoOffToggle" class="sr-only peer">
+                  <div class="w-9 h-5 bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-zinc-300 after:border-zinc-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand-600 peer-checked:after:bg-white"></div>
+                </label>
+              </div>
+            </div>
+
+            <!-- Immich Sync Settings -->
+            <div class="flex flex-col gap-1.5 border-t border-zinc-800 pt-3">
+              <label class="text-xs font-semibold text-zinc-400">🖼️ Sinkronisasi Immich</label>
+              
+              <div class="flex items-center justify-between bg-zinc-955 border border-zinc-855 rounded-xl p-3 text-xs">
+                <div class="flex flex-col gap-0.5">
+                  <span class="font-bold text-zinc-300">Sinkronisasi CCTV ke Immich</span>
+                  <span class="text-[10px] text-zinc-500">Kirim foto & rekaman video CCTV otomatis ke Immich.</span>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer shrink-0">
+                  <input type="checkbox" id="immichSyncToggle" class="sr-only peer">
+                  <div class="w-9 h-5 bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-zinc-300 after:border-zinc-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand-600 peer-checked:after:bg-white"></div>
+                </label>
+              </div>
+
+              <div class="flex flex-col gap-1.5 mt-1">
+                <label class="text-[10px] font-semibold text-zinc-500">API Key Immich</label>
+                <input type="password" id="immichApiKeyInput" class="bg-zinc-955 border border-zinc-855 text-zinc-300 rounded-xl text-xs px-3 py-2 outline-none focus:ring-1 focus:ring-brand-500 font-mono w-full" placeholder="Masukkan API Key/Token Immich">
+              </div>
+
+              <div class="flex flex-col gap-1.5 mt-1">
+                <label class="text-[10px] font-semibold text-zinc-500">Alamat Immich Server</label>
+                <input type="text" id="immichAddressInput" class="bg-zinc-955 border border-zinc-855 text-zinc-300 rounded-xl text-xs px-3 py-2 outline-none focus:ring-1 focus:ring-brand-500 w-full" placeholder="http://127.0.0.1:2283">
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- 4. WIFI & LOG SUB-TAB -->
+        <div id="settings-subtab-wifi-log" class="settings-subtab-content flex flex-col gap-6 w-full hidden">
+          <!-- CARD: WiFi sensing & presence -->
+          <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 flex flex-col gap-4 max-w-3xl mx-auto w-full">
+            <div class="border-b border-zinc-800 pb-3">
+              <h2 class="text-sm font-bold text-zinc-200">Kehadiran (Presence Detection)</h2>
+            </div>
+            
+            <div class="flex flex-col gap-1.5">
+              <label class="text-xs font-semibold text-zinc-400">📶 Pendeteksi Kehadiran (Presence Detection)</label>
+              
+              <div class="flex items-center justify-between bg-zinc-955 border border-zinc-855 rounded-xl p-3 text-xs">
+                <div class="flex flex-col gap-0.5">
+                  <span class="font-bold text-zinc-300">Aktifkan Pendeteksi Kehadiran</span>
+                  <span class="text-[10px] text-zinc-500">Zex menyambut Anda otomatis berdasarkan koneksi Wi-Fi/Ping atau kamera.</span>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer shrink-0">
+                  <input type="checkbox" id="wifiSensingToggle" class="sr-only peer">
+                  <div class="w-9 h-5 bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-zinc-300 after:border-zinc-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand-600 peer-checked:after:bg-white"></div>
+                </label>
+              </div>
+
+              <div class="flex flex-col gap-1.5 mt-1">
+                <label class="text-[10px] font-semibold text-zinc-500">Metode Deteksi</label>
+                <select id="wifiSensingMethodSelect" class="bg-zinc-955 border border-zinc-855 text-zinc-300 rounded-xl text-xs px-3 py-2 outline-none focus:ring-1 focus:ring-brand-500 w-full" onchange="toggleSensingFields()">
+                  <option value="ping">Metode 2: Ping/ARP Jitter (Disarankan, Tanpa Disconnect)</option>
+                  <option value="sniff">Metode 1: Sniffing Probe Request (Butuh Mode Monitor)</option>
+                  <option value="camera">Metode 3: Kamera / CCTV Saja (Deteksi Perubahan Frame)</option>
                 </select>
               </div>
 
-              <!-- Discovered Devices List -->
-              <div class="flex flex-col gap-2">
-                <span class="text-xs font-semibold text-zinc-400">Perangkat Bluetooth</span>
-                <div id="btDevicesList" class="flex flex-col gap-2 max-h-48 overflow-y-auto pr-1">
-                  <!-- JS Populated -->
-                  <p class="text-xs text-zinc-600 text-center py-4">Klik scan untuk memindai perangkat</p>
+              <!-- Camera Presence Custom Parameters -->
+              <div class="flex flex-col gap-2 mt-2 bg-zinc-950 border border-zinc-850 rounded-xl p-3 text-xs hidden" id="cameraPresenceConfigGroup">
+                <span class="font-bold text-zinc-300">Pengaturan Durasi Deteksi Kamera</span>
+                <p class="text-[10px] text-zinc-500 leading-tight mb-1">Sesuaikan aturan durasi hening dan sapaan saat deteksi kamera aktif.</p>
+                
+                <div class="flex items-center justify-between gap-2">
+                  <span class="text-zinc-400 text-[10px]">Min Kamar Hening (Menit):</span>
+                  <input type="number" id="presenceStillnessMinInput" step="0.1" min="0.1" class="w-20 bg-zinc-900 border border-zinc-850 text-zinc-300 rounded-lg px-2 py-1 outline-none text-right" placeholder="3.0">
                 </div>
-              </div>
-            </div>
+                
+                <div class="flex items-center justify-between gap-2">
+                  <span class="text-zinc-400 text-[10px]">Batas Singkat (Menit):</span>
+                  <input type="number" id="presenceShortMinInput" min="1" class="w-20 bg-zinc-900 border border-zinc-850 text-zinc-300 rounded-lg px-2 py-1 outline-none text-right" placeholder="15">
+                </div>
 
-            <!-- WIFI MANAGER CARD -->
-            <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 flex flex-col gap-4">
-              <div class="flex justify-between items-center border-b border-zinc-800 pb-3">
-                <div class="flex items-center gap-2">
-                  <i class="fa-solid fa-wifi text-emerald-400 text-sm"></i>
-                  <h2 class="text-sm font-bold text-zinc-200">Koneksi WiFi</h2>
+                <div class="flex items-center justify-between gap-2">
+                  <span class="text-zinc-400 text-[10px]">Batas Sedang (Menit):</span>
+                  <input type="number" id="presenceMediumMinInput" min="1" class="w-20 bg-zinc-900 border border-zinc-850 text-zinc-300 rounded-lg px-2 py-1 outline-none text-right" placeholder="60">
                 </div>
-                <button onclick="scanWifi()" id="scanWifiBtn" class="bg-emerald-600 hover:bg-emerald-500 hover:scale-105 hover:shadow-[0_0_12px_rgba(16,185,129,0.5)] text-white px-3 py-1 rounded-lg text-xs font-bold transition-all duration-200 flex items-center gap-1 active:scale-95">
-                  <i class="fa-solid fa-magnifying-glass text-[10px]"></i> Scan
-                </button>
-              </div>
 
-              <!-- WiFi Status -->
-              <div class="flex justify-between items-center bg-zinc-950 rounded-xl p-3 border border-zinc-800">
-                <div class="flex flex-col gap-0.5">
-                  <span id="wifiSsid" class="text-xs font-bold text-zinc-300">Menghubungkan...</span>
-                  <span id="wifiDetails" class="text-[10px] text-zinc-500">Mencari status...</span>
-                </div>
-                <div id="wifiSignalBadge" class="text-xs font-bold text-emerald-400">
-                  --%
+                <div class="flex items-center justify-between gap-2">
+                  <span class="text-zinc-400 text-[10px]">Batas Lama (Menit):</span>
+                  <input type="number" id="presenceLongMinInput" min="1" class="w-20 bg-zinc-900 border border-zinc-850 text-zinc-300 rounded-lg px-2 py-1 outline-none text-right" placeholder="120">
                 </div>
               </div>
 
-              <!-- Available WiFi Networks -->
-              <div class="flex flex-col gap-2">
-                <span class="text-xs font-semibold text-zinc-400">Jaringan WiFi Tersedia</span>
-                <div id="wifiNetworksList" class="flex flex-col gap-2 max-h-48 overflow-y-auto pr-1">
-                  <p class="text-xs text-zinc-600 text-center py-4">Klik scan untuk mencari jaringan</p>
-                </div>
+              <div class="flex flex-col gap-1.5 mt-1" id="sensingIpGroup">
+                <label class="text-[10px] font-semibold text-zinc-500">IP Target Ponsel (Metode Ping)</label>
+                <input type="text" id="wifiSensingIpInput" class="bg-zinc-955 border border-zinc-855 text-zinc-300 rounded-xl text-xs px-3 py-2 outline-none focus:ring-1 focus:ring-brand-500 w-full" placeholder="Contoh: 192.168.1.50">
+              </div>
+
+              <div class="flex flex-col gap-1.5 mt-1 hidden" id="sensingMacGroup">
+                <label class="text-[10px] font-semibold text-zinc-500">MAC Address Target (Metode Sniffing)</label>
+                <input type="text" id="wifiSensingMacInput" class="bg-zinc-955 border border-zinc-855 text-zinc-300 rounded-xl text-xs px-3 py-2 outline-none focus:ring-1 focus:ring-brand-500 font-mono w-full" placeholder="Contoh: AA:BB:CC:DD:EE:FF">
+                <span class="text-[9px] text-amber-500 leading-tight mt-0.5"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Peringatan: Metode Sniffing akan memutuskan koneksi Wi-Fi server utama jika server tidak menggunakan kabel LAN.</span>
               </div>
             </div>
           </div>
 
-        <!-- SYSTEM EVENT LOGS (Full width at bottom) -->
-        <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 flex flex-col gap-4 w-full">
-          <div class="flex justify-between items-center border-b border-zinc-800 pb-2">
-            <span class="text-xs font-bold text-zinc-200">Log Aktivitas</span>
-            <button onclick="loadLogs()" class="text-zinc-500 hover:text-zinc-400 text-xs"><i class="fa-solid fa-rotate"></i></button>
+          <!-- CARD: WiFi Manager -->
+          <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 flex flex-col gap-4 max-w-3xl mx-auto w-full">
+            <div class="flex justify-between items-center border-b border-zinc-800 pb-3">
+              <div class="flex items-center gap-2">
+                <i class="fa-solid fa-wifi text-emerald-400 text-sm"></i>
+                <h2 class="text-sm font-bold text-zinc-200">Koneksi WiFi</h2>
+              </div>
+              <button onclick="scanWifi()" id="scanWifiBtn" class="bg-emerald-600 hover:bg-emerald-500 hover:scale-105 hover:shadow-[0_0_12px_rgba(16,185,129,0.5)] text-white px-3 py-1 rounded-lg text-xs font-bold transition-all duration-200 flex items-center gap-1 active:scale-95">
+                <i class="fa-solid fa-magnifying-glass text-[10px]"></i> Scan
+              </button>
+            </div>
+
+            <!-- WiFi Status -->
+            <div class="flex justify-between items-center bg-zinc-950 rounded-xl p-3 border border-zinc-800">
+              <div class="flex flex-col gap-0.5">
+                <span id="wifiSsid" class="text-xs font-bold text-zinc-300">Menghubungkan...</span>
+                <span id="wifiDetails" class="text-[10px] text-zinc-500">Mencari status...</span>
+              </div>
+              <div id="wifiSignalBadge" class="text-xs font-bold text-emerald-400">
+                --%
+              </div>
+            </div>
+
+            <!-- Available WiFi Networks -->
+            <div class="flex flex-col gap-2">
+              <span class="text-xs font-semibold text-zinc-400">Jaringan WiFi Tersedia</span>
+              <div id="wifiNetworksList" class="flex flex-col gap-2 max-h-48 overflow-y-auto pr-1">
+                <p class="text-xs text-zinc-600 text-center py-4">Klik scan untuk mencari jaringan</p>
+              </div>
+            </div>
           </div>
-          <div id="logsContainer" class="flex flex-col gap-2 max-h-48 overflow-y-auto pr-1">
-            <!-- JS populated -->
+
+          <!-- CARD: System Event Logs -->
+          <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 flex flex-col gap-4 max-w-3xl mx-auto w-full">
+            <div class="flex justify-between items-center border-b border-zinc-800 pb-2">
+              <span class="text-xs font-bold text-zinc-200">Log Aktivitas</span>
+              <button onclick="loadLogs()" class="text-zinc-500 hover:text-zinc-400 text-xs"><i class="fa-solid fa-rotate"></i></button>
+            </div>
+            <div id="logsContainer" class="flex flex-col gap-2 max-h-48 overflow-y-auto pr-1">
+              <!-- JS populated -->
+            </div>
           </div>
+
         </div>
+
+        <!-- Floating save button or double save button at the very bottom -->
+        <div class="flex justify-center max-w-3xl mx-auto w-full mt-2">
+          <button onclick="saveAllSettings()" class="bg-brand-600 hover:bg-brand-500 hover:scale-[1.02] hover:shadow-[0_0_18px_rgba(99,102,241,0.4)] text-white py-3 rounded-xl text-xs font-bold transition-all duration-200 w-full active:scale-[0.98]">
+            Simpan Seluruh Pengaturan
+          </button>
+        </div>
+
       </section>
 
     </div>
@@ -1363,6 +1395,10 @@
       // Restore saved tab
       const savedTab = localStorage.getItem('active_tab') || 'dashboard';
       switchTab(savedTab);
+
+      // Restore saved settings sub-tab
+      const savedSubTab = localStorage.getItem('active_settings_subtab') || 'asisten';
+      switchSettingsSubTab(savedSubTab);
     });
 
     // PWA Install Event Handler
@@ -1461,6 +1497,32 @@
         loadBtAutoSwitchState();
       }
     }
+    function switchSettingsSubTab(subTabName) {
+      localStorage.setItem('active_settings_subtab', subTabName);
+      
+      // Hide all settings subtab contents
+      ['asisten', 'audio-bt', 'cctv', 'wifi-log'].forEach(tab => {
+        const contentEl = document.getElementById(`settings-subtab-${tab}`);
+        if (contentEl) contentEl.classList.add('hidden');
+        
+        const btnEl = document.getElementById(`btn-subtab-${tab}`);
+        if (btnEl) {
+          btnEl.classList.remove('bg-brand-600', 'text-white');
+          btnEl.classList.add('bg-zinc-900', 'text-zinc-400', 'hover:text-zinc-200');
+        }
+      });
+      
+      // Show selected settings subtab content
+      const activeContentEl = document.getElementById(`settings-subtab-${subTabName}`);
+      if (activeContentEl) activeContentEl.classList.remove('hidden');
+      
+      const activeBtnEl = document.getElementById(`btn-subtab-${subTabName}`);
+      if (activeBtnEl) {
+        activeBtnEl.classList.add('bg-brand-600', 'text-white');
+        activeBtnEl.classList.remove('bg-zinc-900', 'text-zinc-400', 'hover:text-zinc-200');
+      }
+    }
+
 
     // Live Clock Updater
     function updateClock() {
