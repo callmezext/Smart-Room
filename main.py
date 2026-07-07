@@ -3440,24 +3440,35 @@ async def api_bluetooth_auto_reconnect(request: Request):
 async def api_list_vn():
     vns = []
     if os.path.exists(UPLOAD_DIR):
-        for f in sorted(os.listdir(UPLOAD_DIR)):
-            if (f.startswith("vn_") or f.startswith("upload_")) and not f.endswith(".wav") and not f.endswith("_play.wav"):
+        files = os.listdir(UPLOAD_DIR)
+        for f in sorted(files):
+            if (f.startswith("vn_") or f.startswith("upload_") or f.startswith("tts-ringtone-")) and not f.endswith("_play.wav"):
+                if f.endswith(".wav"):
+                    base = f.rsplit(".", 1)[0]
+                    if f"{base}.webm" in files or f"{base}.mp3" in files:
+                        continue
                 path = os.path.join(UPLOAD_DIR, f)
                 stat = os.stat(path)
                 try:
                     parts = f.split("_")
-                    timestamp = int(parts[1])
+                    if f.startswith("tts-ringtone-"):
+                        parts_ring = f.split("-")
+                        timestamp = int(parts_ring[2])
+                    else:
+                        timestamp = int(parts[1])
                 except Exception:
                     timestamp = int(os.path.getmtime(path))
-                    
                 if f.startswith("vn_"):
                     display_name = "Voice Note"
+                elif f.startswith("tts-ringtone-"):
+                    parts_ring = f.split("-", 3)
+                    txt_part = parts_ring[3].rsplit(".", 1)[0] if len(parts_ring) > 3 else "Ringtone"
+                    display_name = "Ringtone: " + txt_part.replace("_", " ")
                 else:
                     parts = f.split("_", 2)
                     display_name = parts[2] if len(parts) > 2 else f
                     if display_name.startswith("TTS_"):
                         display_name = "TTS: " + display_name[4:].replace("_", " ").rsplit(".", 1)[0]
-                    
                 vns.append({
                     "filename": f,
                     "display_name": display_name,
