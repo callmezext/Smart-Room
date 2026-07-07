@@ -1320,6 +1320,9 @@
       // CCTV Auto Refresh initialization
       initCctvAutoRefresh();
 
+      // WhatsApp Contact Widget initialization
+      initWhatsAppWidget();
+
       // Restore saved tab
       const savedTab = localStorage.getItem('active_tab') || 'dashboard';
       switchTab(savedTab);
@@ -4266,6 +4269,81 @@
     <img id="snapshotFullscreenImg" src="" class="max-w-[95%] max-h-[95%] object-contain rounded-lg shadow-2xl border border-zinc-800 animate-in fade-in duration-200">
     <button class="absolute top-4 right-4 w-10 h-10 rounded-full bg-zinc-900/80 border border-zinc-800 text-zinc-300 flex items-center justify-center hover:bg-zinc-800 transition-all"><i class="fa-solid fa-xmark"></i></button>
   </div>
+
+  <!-- WHATSAPP FLOATING WIDGET -->
+  <div id="waWidget" class="fixed z-[99] right-5 bottom-20 md:bottom-6 flex flex-col items-end gap-3 select-none pointer-events-none">
+    <!-- Chat Speech Bubble Popup -->
+    <div id="waPopup" class="bg-zinc-900 border border-zinc-800 rounded-2xl p-4 shadow-2xl flex flex-col gap-2 max-w-[260px] opacity-0 translate-y-4 transition-all duration-500 ease-out pointer-events-auto scale-90 origin-bottom-right hidden">
+      <div class="flex items-center justify-between gap-4 border-b border-zinc-800 pb-2">
+        <div class="flex items-center gap-2">
+          <div class="relative w-8 h-8 rounded-full bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20 text-emerald-400">
+            <i class="fa-brands fa-whatsapp text-sm"></i>
+            <span class="absolute top-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full animate-ping"></span>
+            <span class="absolute top-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full border border-zinc-900"></span>
+          </div>
+          <div>
+            <h4 class="text-[11px] font-bold text-zinc-200 leading-tight">Hubungi Zex</h4>
+            <span class="text-[9px] text-zinc-500">Aktif Sekarang</span>
+          </div>
+        </div>
+        <button onclick="closeWaPopup(event)" class="text-zinc-500 hover:text-zinc-300 transition-colors"><i class="fa-solid fa-xmark text-xs"></i></button>
+      </div>
+      <p class="text-[10px] text-zinc-400 leading-relaxed">Halo! Ada yang bisa Zex bantu? Klik tombol di bawah untuk lanjut chat di WhatsApp.</p>
+      <a href="https://wa.me/6285704625361" target="_blank" onclick="closeWaPopup(event)" class="bg-emerald-600 hover:bg-emerald-500 hover:scale-[1.03] text-white py-1.5 px-3 rounded-lg text-[10px] font-bold text-center transition-all duration-200 flex items-center justify-center gap-1 shadow-lg shadow-emerald-950/20">
+        <i class="fa-brands fa-whatsapp text-xs"></i> Chat WhatsApp
+      </a>
+    </div>
+    
+    <!-- Floating Button itself -->
+    <a id="waFab" href="https://wa.me/6285704625361" target="_blank" onclick="closeWaPopup(event)" class="w-12 h-12 rounded-full bg-emerald-600 hover:bg-emerald-500 shadow-xl flex items-center justify-center text-white text-xl border border-emerald-500 transition-all duration-300 hover:scale-110 active:scale-95 pointer-events-auto relative group" title="Hubungi Zex via WhatsApp">
+      <i class="fa-brands fa-whatsapp"></i>
+      <!-- Small notification badge -->
+      <span id="waBadge" class="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 bg-red-500 rounded-full border-2 border-zinc-950 flex items-center justify-center"></span>
+    </a>
+  </div>
+
+  <style>
+    /* Pulse anim for WhatsApp FAB */
+    #waFab {
+      animation: waPulse 2s infinite alternate;
+    }
+    @keyframes waPulse {
+      0% { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 0 0 0 rgba(16, 185, 129, 0.4); }
+      100% { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 0 0 8px rgba(16, 185, 129, 0); }
+    }
+  </style>
+
+  <script>
+    function initWhatsAppWidget() {
+      const popup = document.getElementById("waPopup");
+      if (popup) {
+        // Show after 2 seconds
+        setTimeout(() => {
+          popup.classList.remove("hidden");
+          setTimeout(() => {
+            popup.classList.remove("opacity-0", "translate-y-4", "scale-90");
+            popup.classList.add("opacity-100", "translate-y-0", "scale-100");
+          }, 50);
+        }, 2000);
+      }
+    }
+
+    function closeWaPopup(event) {
+      if (event) {
+        // Prevent click events from propagating or doing defaults unless expected
+      }
+      const popup = document.getElementById("waPopup");
+      const badge = document.getElementById("waBadge");
+      if (popup) {
+        popup.classList.remove("opacity-100", "translate-y-0", "scale-100");
+        popup.classList.add("opacity-0", "translate-y-4", "scale-90");
+        setTimeout(() => popup.classList.add("hidden"), 500);
+      }
+      if (badge) {
+        badge.style.display = "none";
+      }
+    }
+  </script>
 
 </body>
 </html>
