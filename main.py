@@ -1563,8 +1563,11 @@ async def speak(text: str):
     tts_engine = settings.get("tts_engine", "edge-tts")
     voice_setting = settings.get("tts_voice", "female")
     
-    # Split text into sentences by punctuation followed by space
+    # Clean text to remove comma pause before "tuan"/"Tuan"
     import re
+    text = re.sub(r',\s*([tT]uan)\b', r' \1', text)
+    
+    # Split text into sentences by punctuation followed by space
     raw_sentences = re.split(r'(?<=[.!?])\s+', text)
     sentences = [s.strip() for s in raw_sentences if s.strip()]
     
