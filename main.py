@@ -78,6 +78,7 @@ active_alarm_type = None
 active_alarm_value = None
 active_alarm_volume = 100
 pre_alarm_volume = None  # To restore if user wants, but default_volume takes priority
+current_speak_id = None
 
 # Snoozed alarms: alarm_id -> trigger_epoch
 snoozed_alarms = {}
@@ -130,7 +131,7 @@ DEFAULT_SYSTEM_PROMPT = (
     "Anda adalah Zex, asisten suara pintar berbasis Gemini AI untuk kamar tidur pintar (Smart Room). "
     "Anda dibekali dengan berbagai tools canggih (alarm, cuaca, pencarian web, pemutar musik lokal, radio streaming, YouTube, timer, mode rutinitas, shortcut favorit, briefing, dan pengatur volume).\n\n"
     "PRINSIP KOMUNIKASI (SANGAT PENTING):\n"
-    "1. RESPONS SINGKAT & PADAT: Karena respons Anda akan diubah menjadi suara (TTS) di speaker, jawablah dengan sangat singkat, ramah, langsung ke inti, dan MAKSIMAL 2 KALIMAT.\n"
+    "1. RESPONS SUPER SINGKAT & BATASI INFORMASI: Karena respons Anda akan diubah menjadi suara (TTS) di speaker, jawablah dengan sangat singkat, biasanya hanya dalam 1 KALIMAT. Jika informasi yang perlu disampaikan cukup panjang (misalnya penjelasan detail, ramalan cuaca lengkap, hasil pencarian web, atau instruksi beruntun), JANGAN langsung menjelaskannya secara panjang lebar. Cukup sebutkan intinya secara singkat dan tanyakan terlebih dahulu apakah pengguna ingin mendengarkan detail selengkapnya (contoh: '...Apakah Tuan ingin saya bacakan detailnya?').\n"
     "2. GAYA BAHASA: Pakai Bahasa Indonesia yang santai, ringan, natural, tidak kaku, dan tidak terdengar seperti AI. Diperbolehkan memanggil pengguna dengan sebutan 'tuan' dan menggunakan kata 'baik' untuk mengonfirmasi perintah. Jangan menyebut diri sendiri dengan nama 'Zex' saat berbicara, gunakan kata 'saya' untuk menunjuk diri Anda sendiri. Jangan pakai kata 'aku'.\n"
     "3. MINIM KATA MAAF: Jangan meminta maaf berulang-ulang. Jika ada kesalahan, cukup singkat dan santai.\n"
     "5. AUTO-CORRECT KESALAHAN SUARA (VOICE-TO-TEXT): Karena input teks didapat dari transkripsi suara, seringkali terjadi kesalahan kata (typo) akibat pelafalan (misal: 'putar musik pop' didengar 'putar musik mpop', 'sheila on 7' didengar 'sila on seven', 'nyalakan kamera' didengar 'nyala akamera'). "
@@ -406,7 +407,8 @@ def save_alarms(alarms: list):
     write_json_file(ALARMS_FILE, alarms)
 
 def stop_active_audio():
-    global active_play_process, is_alarm_playing, active_alarm_id, active_alarm_name, active_alarm_type, active_alarm_value
+    global active_play_process, is_alarm_playing, active_alarm_id, active_alarm_name, active_alarm_type, active_alarm_value, current_speak_id
+    current_speak_id = None
     was_alarm_playing = False
     with state_lock:
         was_alarm_playing = is_alarm_playing
@@ -1552,124 +1554,163 @@ def play_youtube_audio(query: str, *, user_requested: bool = True) -> str:
 # --- VOICE ASSISTANT INTRINSICS & GEMINI ---
 
 async def speak(text: str):
-    ts = int(time.time() * 1000)
-    wav_path = os.path.join(UPLOAD_DIR, f"tts_{ts}.wav")
+    global current_speak_id, active_play_process
+    
+    my_speak_id = time.time()
+    current_speak_id = my_speak_id
     
     settings = read_json_file(SETTINGS_FILE, DEFAULT_SETTINGS)
     tts_engine = settings.get("tts_engine", "edge-tts")
     voice_setting = settings.get("tts_voice", "female")
     
-    if tts_engine == "piper":
-        piper_bin = "/app/bin/piper/piper"
-        model_path = "/app/models/id_ID-news_tts-medium.onnx"
+    # Split text into sentences by punctuation followed by space
+    import re
+    raw_sentences = re.split(r'(?<=[.!?])\s+', text)
+    sentences = [s.strip() for s in raw_sentences if s.strip()]
+    
+    if not sentences:
+        return
         
-        if not os.path.exists(piper_bin) or not os.path.exists(model_path):
-            # Fallback path check
-            piper_bin = os.path.join(os.path.dirname(__file__), "bin", "piper", "piper")
-            model_path = os.path.join(os.path.dirname(__file__), "models", "id_ID-news_tts-medium.onnx")
+    for index, sentence in enumerate(sentences):
+        # Abort if interrupted by another speak call or stop request
+        if current_speak_id != my_speak_id:
+            break
             
-        if os.path.exists(piper_bin) and os.path.exists(model_path):
-            try:
-                temp_wav = os.path.join(UPLOAD_DIR, f"tts_{ts}_temp.wav")
+        ts = int(time.time() * 1000)
+        wav_path = os.path.join(UPLOAD_DIR, f"tts_{ts}_{index}.wav")
+        
+        cur_tts_engine = tts_engine
+        if cur_tts_engine == "piper":
+            piper_bin = "/app/bin/piper/piper"
+            model_path = "/app/models/id_ID-news_tts-medium.onnx"
+            
+            if not os.path.exists(piper_bin) or not os.path.exists(model_path):
+                piper_bin = os.path.join(os.path.dirname(__file__), "bin", "piper", "piper")
+                model_path = os.path.join(os.path.dirname(__file__), "models", "id_ID-news_tts-medium.onnx")
                 
-                # Execute Piper TTS process using asyncio with tuned speed & silences
-                proc = await asyncio.create_subprocess_exec(
-                    piper_bin, "--model", model_path, "--output_file", temp_wav,
-                    "--length_scale", "1.12",
-                    "--sentence_silence", "0.35",
-                    stdin=asyncio.subprocess.PIPE,
-                    stdout=asyncio.subprocess.PIPE,
-                    stderr=asyncio.subprocess.PIPE
-                )
-                stdout, stderr = await proc.communicate(input=text.encode('utf-8'))
-                
-                if os.path.exists(temp_wav):
-                    if voice_setting == "male":
-                        # Pitch shift to male voice using rubberband for high quality
-                        proc_ffmpeg = await asyncio.create_subprocess_exec(
-                            "ffmpeg", "-y", "-i", temp_wav, "-af", "rubberband=pitch=0.82", wav_path,
-                            stdout=asyncio.subprocess.PIPE,
-                            stderr=asyncio.subprocess.PIPE
-                        )
-                        await proc_ffmpeg.communicate()
-                        if os.path.exists(temp_wav):
-                            try:
-                                os.remove(temp_wav)
-                            except Exception:
-                                pass
-                    elif voice_setting == "child":
-                        # Pitch shift to child voice using rubberband for high quality
-                        proc_ffmpeg = await asyncio.create_subprocess_exec(
-                            "ffmpeg", "-y", "-i", temp_wav, "-af", "rubberband=pitch=1.15", wav_path,
-                            stdout=asyncio.subprocess.PIPE,
-                            stderr=asyncio.subprocess.PIPE
-                        )
-                        await proc_ffmpeg.communicate()
-                        if os.path.exists(temp_wav):
-                            try:
-                                os.remove(temp_wav)
-                            except Exception:
-                                pass
+            if os.path.exists(piper_bin) and os.path.exists(model_path):
+                try:
+                    temp_wav = os.path.join(UPLOAD_DIR, f"tts_{ts}_{index}_temp.wav")
+                    proc = await asyncio.create_subprocess_exec(
+                        piper_bin, "--model", model_path, "--output_file", temp_wav,
+                        "--length_scale", "1.12",
+                        "--sentence_silence", "0.35",
+                        stdin=asyncio.subprocess.PIPE,
+                        stdout=asyncio.subprocess.PIPE,
+                        stderr=asyncio.subprocess.PIPE
+                    )
+                    stdout, stderr = await proc.communicate(input=sentence.encode('utf-8'))
+                    
+                    if os.path.exists(temp_wav):
+                        if voice_setting == "male":
+                            proc_ffmpeg = await asyncio.create_subprocess_exec(
+                                "ffmpeg", "-y", "-i", temp_wav, "-af", "rubberband=pitch=0.82", wav_path,
+                                stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
+                            )
+                            await proc_ffmpeg.communicate()
+                            if os.path.exists(temp_wav):
+                                try: os.remove(temp_wav)
+                                except Exception: pass
+                        elif voice_setting == "child":
+                            proc_ffmpeg = await asyncio.create_subprocess_exec(
+                                "ffmpeg", "-y", "-i", temp_wav, "-af", "rubberband=pitch=1.15", wav_path,
+                                stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
+                            )
+                            await proc_ffmpeg.communicate()
+                            if os.path.exists(temp_wav):
+                                try: os.remove(temp_wav)
+                                except Exception: pass
+                        else:
+                            os.rename(temp_wav, wav_path)
                     else:
-                        os.rename(temp_wav, wav_path)
-                else:
-                    print(f"Piper failed to output wave file: {stderr.decode('utf-8', errors='ignore')}")
-                    tts_engine = "edge-tts"
-            except Exception as e:
-                print(f"Piper exception: {e}. Falling back to Edge-TTS.")
-                tts_engine = "edge-tts"
-        else:
-            print(f"Piper binary or model missing. Falling back to Edge-TTS.")
-            tts_engine = "edge-tts"
-            
-    if tts_engine != "piper":
-        mp3_path = os.path.join(UPLOAD_DIR, f"tts_{ts}.mp3")
-        voice_id = "id-ID-GadisNeural" if voice_setting in ["female", "child"] else "id-ID-ArdiNeural"
-        
-        try:
-            import edge_tts
-            comm = edge_tts.Communicate(text, voice_id)
-            await comm.save(mp3_path)
-        except Exception as e:
-            print(f"Edge TTS failed: {e}. Falling back to gTTS.")
-            try:
-                from gtts import gTTS
-                loop = asyncio.get_running_loop()
-                await loop.run_in_executor(None, lambda: gTTS(text=text, lang="id").save(mp3_path))
-            except Exception as ex:
-                print(f"gTTS failed: {ex}")
-                return
-                
-        try:
-            subprocess.run(["ffmpeg", "-y", "-i", mp3_path, "-ac", "1", "-ar", "16000", wav_path], capture_output=True, text=True)
-            if os.path.exists(mp3_path):
-                os.remove(mp3_path)
-        except Exception as e:
-            print(f"FFmpeg conversion failed: {e}")
-            return
-            
-    async with audio_lock:
-        stop_active_audio()
-        # Set system volume dynamically to match volume slider/settings
-        vol = settings.get("volume")
-        if vol is None:
-            vol = get_configured_default_volume()
-        vol = get_adaptive_volume(vol)
-        set_system_volume(vol)
-        
-        bt_sink = get_active_bt_sink()
-        if os.environ.get("PULSE_SERVER") or os.path.exists("/tmp/pulse-socket"):
-            if bt_sink:
-                cmd = ["paplay", "--device", bt_sink, wav_path]
+                        print(f"Piper failed for sentence '{sentence}': {stderr.decode('utf-8', errors='ignore')}")
+                        cur_tts_engine = "edge-tts"
+                except Exception as e:
+                    print(f"Piper exception on sentence '{sentence}': {e}. Falling back to Edge-TTS.")
+                    cur_tts_engine = "edge-tts"
             else:
-                cmd = ["paplay", wav_path]
-        else:
-            cmd = ["aplay", "-q", wav_path]
-        try:
-            global active_play_process
-            active_play_process = subprocess.Popen(cmd)
-        except Exception as ex:
-            print(f"Failed to play TTS wav: {ex}")
+                cur_tts_engine = "edge-tts"
+                
+        if cur_tts_engine != "piper":
+            mp3_path = os.path.join(UPLOAD_DIR, f"tts_{ts}_{index}.mp3")
+            voice_id = "id-ID-GadisNeural" if voice_setting in ["female", "child"] else "id-ID-ArdiNeural"
+            
+            try:
+                import edge_tts
+                comm = edge_tts.Communicate(sentence, voice_id)
+                await comm.save(mp3_path)
+            except Exception as e:
+                print(f"Edge TTS failed on sentence '{sentence}': {e}. Falling back to gTTS.")
+                try:
+                    from gtts import gTTS
+                    loop = asyncio.get_running_loop()
+                    await loop.run_in_executor(None, lambda: gTTS(text=sentence, lang="id").save(mp3_path))
+                except Exception as ex:
+                    print(f"gTTS failed on sentence '{sentence}': {ex}")
+                    continue
+                    
+            try:
+                subprocess.run(["ffmpeg", "-y", "-i", mp3_path, "-ac", "1", "-ar", "16000", wav_path], capture_output=True, text=True)
+                if os.path.exists(mp3_path):
+                    os.remove(mp3_path)
+            except Exception as e:
+                print(f"FFmpeg conversion failed: {e}")
+                continue
+                
+        # Check again if we were interrupted during generation
+        if current_speak_id != my_speak_id:
+            if os.path.exists(wav_path):
+                try: os.remove(wav_path)
+                except Exception: pass
+            break
+            
+        # Play the sentence
+        async with audio_lock:
+            # Check again inside lock
+            if current_speak_id != my_speak_id:
+                if os.path.exists(wav_path):
+                    try: os.remove(wav_path)
+                    except Exception: pass
+                break
+                
+            stop_active_audio()
+            # Restore current_speak_id since stop_active_audio resets it
+            current_speak_id = my_speak_id
+            
+            vol = settings.get("volume")
+            if vol is None:
+                vol = get_configured_default_volume()
+            vol = get_adaptive_volume(vol)
+            set_system_volume(vol)
+            
+            bt_sink = get_active_bt_sink()
+            if os.environ.get("PULSE_SERVER") or os.path.exists("/tmp/pulse-socket"):
+                if bt_sink:
+                    cmd = ["paplay", "--device", bt_sink, wav_path]
+                else:
+                    cmd = ["paplay", wav_path]
+            else:
+                cmd = ["aplay", "-q", wav_path]
+                
+            try:
+                active_play_process = subprocess.Popen(cmd)
+            except Exception as e:
+                print(f"Error spawning player process: {e}")
+                if os.path.exists(wav_path):
+                    try: os.remove(wav_path)
+                    except Exception: pass
+                continue
+                
+        # Wait for this sentence to finish playing before proceeding to the next sentence
+        while active_play_process and active_play_process.poll() is None:
+            if current_speak_id != my_speak_id:
+                break
+            await asyncio.sleep(0.05)
+            
+        # Cleanup sentence wav file
+        if os.path.exists(wav_path):
+            try: os.remove(wav_path)
+            except Exception: pass
 
 # Local Intent Fallback Routing
 def parse_time_expression(text: str) -> tuple[Optional[str], Optional[str]]:
